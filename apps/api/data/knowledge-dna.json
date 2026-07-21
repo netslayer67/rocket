@@ -36,5 +36,24 @@
     "authorityType": "repeated personal experiment",
     "ctaStyle": "numbered ingredient references with alternatives, never a bare sales CTA",
     "naturalness": 5
+  },
+  {
+    "sourceLabel": "Negative lesson: beach wedding product injection",
+    "topics": ["beach wedding", "heat and guest comfort", "batik clothing", "narrative coherence"],
+    "hookType": "relatable scene hook with weak follow-through",
+    "emotion": "relatable concern",
+    "narrativeType": "negative reviewer lesson",
+    "curiosityLevel": 2,
+    "linkPlacement": "middle",
+    "patternSummary": "Scene hook -> heat concern -> shortest path to clothing product -> marketplace description -> unsupported community conclusion -> weak product question; reject as product-led narrative.",
+    "conflict": "a real heat concern is used only to justify a product insertion",
+    "persona": "synthetic conversational voice that reaches a conclusion too quickly",
+    "style": "smooth but forced transitions, marketplace phrasing, topic drift",
+    "vocabulary": ["mulai cari cara", "nemuin", "premium", "adem di kulit", "suasana komunitas", "solusi", "link"],
+    "informationGap": "no specific unresolved human worry remains after the product appears",
+    "discussionPattern": "generic product question that does not invite a concrete experience",
+    "authorityType": "none",
+    "ctaStyle": "product-led transition disguised as contextual reference",
+    "naturalness": 1
   }
 ]
