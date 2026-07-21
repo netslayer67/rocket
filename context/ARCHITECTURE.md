@@ -44,7 +44,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 4. Knowledge retrieval selects semantic matches, then falls back to lexical patterns.
 5. A creator can optionally request a transient public-link preview that returns metadata and an editable topic suggestion through the AI Orchestrator.
 6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft.
-7. Generation runs as an in-process job. The API returns a job ID, emits progress over SSE, persists the draft, then emits `complete` with the saved draft.
+7. Generation runs as an in-process job. The API returns a job ID, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft.
 8. Deterministic checks flag missing contextual references, promotional phrasing, generic AI patterns, article-style hooks, absent persona voice, and observed incompatible concrete scenes; one live rewrite is bounded through the orchestrator.
 9. The user reviews and approves the draft before copying it to a platform.
 10. A creator can optionally connect one Threads account through Meta OAuth; this only prepares a future manual publisher.

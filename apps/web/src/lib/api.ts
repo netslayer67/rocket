@@ -20,7 +20,7 @@ export async function startNarrativeJob(input: NarrativeInput) {
 
 export function watchNarrativeJob(jobId: string, onProgress: (event: NarrativeJobEvent) => void) {
   return new Promise<Narrative>((resolve, reject) => {
-    const source = new EventSource(`${apiUrl}/narratives/jobs/${encodeURIComponent(jobId)}/events`);
+    const source = new EventSource(`${apiUrl}/narratives/events?jobId=${encodeURIComponent(jobId)}`);
     const eventTypes = ['queued', 'generating', 'reviewing', 'saved', 'complete', 'error'];
     let settled = false;
     const finish = (error?: Error, narrative?: Narrative) => {

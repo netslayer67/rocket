@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Sse } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Sse } from '@nestjs/common';
 import { GenerateNarrativeDto } from './dto/generate-narrative.dto';
 import { SuggestNarrativeDto } from './dto/suggest-narrative.dto';
 import { NarrativesService } from './narratives.service';
@@ -21,8 +21,8 @@ export class NarrativesController {
     return { jobId };
   }
 
-  @Sse('jobs/:jobId/events')
-  events(@Param('jobId') jobId: string) {
+  @Sse('events')
+  events(@Query('jobId', ParseUUIDPipe) jobId: string) {
     return this.jobs.events(jobId);
   }
 
