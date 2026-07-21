@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Rocket Project is an Indonesian AI Narrative Engine.
+  Stack: Next.js/TypeScript/Tailwind frontend; NestJS/Mongoose/MongoDB backend.
+  Read context/ARCHITECTURE.md, context/PRD.md, context/DESIGN.md, context/SCHEMA.md, and context/RULES.md.
+  All LLM calls route through AiOrchestratorService. Raw imported threads must not be persisted.
+  Source-code files have a hard 200-line maximum. Prefer Ponytail's smallest safe solution.
+
+rules:
+  proposal:
+    - Include scope, non-goals, and impact on the manual-approval boundary.
+    - Keep the proposal under 500 words.
+  design:
+    - Name every affected app, schema, and API contract.
+    - Reuse the existing Tailwind design system before adding dependencies.
+  tasks:
+    - Each task must be independently verifiable.
+    - Include line-limit, test, and build checks.
