@@ -46,7 +46,7 @@ export class ThreadsController {
   }
 
   private dashboardUrl(result: 'connected' | 'error') {
-    const origin = this.config.get<string>('WEB_ORIGIN', 'http://localhost:3000')?.replace(/\/$/, '');
+    const origin = this.config.get<string>('WEB_ORIGIN', 'http://localhost:3000')?.trim().replace(/\/$/, '');
     return `${origin}?threads=${result}`;
   }
 
