@@ -9,12 +9,8 @@ import { isThreadsConfigured, readThreadsConfig } from './threads-config';
 import { exchangeAuthorizationCode, exchangeLongLivedToken } from './threads-oauth';
 
 const CONNECTION_KEY = 'default';
-const STATE_TTL_MS = 10 * 60 * 1000;
-
 @Injectable()
 export class ThreadsService {
-  private readonly states = new Map<string, number>();
-
   constructor(
     private readonly config: ConfigService,
     @InjectModel(ThreadsConnection.name) private readonly connections: Model<ThreadsConnection>,
@@ -32,9 +28,7 @@ export class ThreadsService {
 
   start() {
     const config = readThreadsConfig(this.config);
-    this.clearExpiredStates();
     const state = randomUUID();
-    this.states.set(state, Date.now() + STATE_TTL_MS);
     const url = new URL('https://threads.net/oauth/authorize');
     url.search = new URLSearchParams({ client_id: config.appId, redirect_uri: config.redirectUri, scope: config.scopes.join(','), response_type: 'code', state }).toString();
     return { state, url: url.toString() };
@@ -42,7 +36,6 @@ export class ThreadsService {
 
   async complete(code: string | undefined, state: string | undefined, cookieState: string | undefined) {
     if (!code || !state || !this.validState(state, cookieState)) throw new BadRequestException('Threads authorization session is invalid or expired');
-    this.states.delete(state);
     const config = readThreadsConfig(this.config);
     const shortToken = await exchangeAuthorizationCode(config, code);
     const token = await exchangeLongLivedToken(config, shortToken.accessToken);
@@ -61,12 +54,6 @@ export class ThreadsService {
   }
 
   private validState(state: string, cookieState: string | undefined) {
-    this.clearExpiredStates();
-    return state === cookieState && this.states.has(state);
-  }
-
-  private clearExpiredStates() {
-    const now = Date.now();
-    for (const [state, expiresAt] of this.states) if (expiresAt <= now) this.states.delete(state);
+    return Boolean(cookieState && state === cookieState);
   }
 }

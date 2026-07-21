@@ -10,10 +10,25 @@ describe('ThreadsService', () => {
     expect(() => service.start()).toThrow(ServiceUnavailableException);
   });
 
-  it('rejects an OAuth callback that is not bound to the initiating browser', async () => {
+  it('accepts matching state without process-local memory', () => {
+    const initiator = new ThreadsService(config(), model());
+    const { state } = initiator.start();
+    const callback = new ThreadsService(config(), model());
+    const validState = (callback as unknown as { validState: (value: string, cookie: string | undefined) => boolean }).validState;
+
+    expect(validState.call(callback, state, state)).toBe(true);
+  });
+
+  it('rejects a mismatched OAuth state', async () => {
     const service = new ThreadsService(config(), model());
     const { state } = service.start();
     await expect(service.complete('code', state, 'different-state')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects a missing OAuth state', async () => {
+    const service = new ThreadsService(config(), model());
+    const { state } = service.start();
+    await expect(service.complete('code', state, undefined)).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('reports connection status without encrypted token fields', async () => {
