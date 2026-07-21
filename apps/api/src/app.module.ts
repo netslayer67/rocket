@@ -12,10 +12,10 @@ import { ThreadsModule } from './threads/threads.module';
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/rocket'),
-        dbName: config.get<string>('MONGODB_DATABASE'),
-      }),
+      useFactory: (config: ConfigService) => {
+        const database = config.get<string>('MONGODB_DATABASE')?.trim();
+        return { uri: config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/rocket'), dbName: database || undefined };
+      },
     }),
     AiModule,
     PersonasModule,
