@@ -12,5 +12,5 @@
 ## 3. Verification and release
 
 - [x] 3.1 Run `npm run check:lines` and `npm test`.
-- [ ] 3.2 Run `npm run build`, commit, push, and deploy the API.
-- [ ] 3.3 Verify the reviewer blocks the reported failure and archive the OpenSpec change.
+- [x] 3.2 Run `npm run build`, commit, push, and deploy the API.
+- [x] 3.3 Verify the reviewer blocks the reported failure and archive the OpenSpec change.
