@@ -13,4 +13,4 @@
 
 - [x] 3.1 Sync the accepted delta into the main OpenSpec narrative, naturalness, and knowledge specs.
 - [x] 3.2 Run `npm run check:lines`, `npm test`, and `npm run build`.
-- [ ] 3.3 Commit, push, deploy the API, verify production knowledge, and archive this change.
+- [x] 3.3 Commit, push, deploy the API, verify production knowledge, and archive this change.
