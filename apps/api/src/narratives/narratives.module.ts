@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NarrativesController } from './narratives.controller';
 import { NarrativesService } from './narratives.service';
 import { Narrative, NarrativeSchema } from './schemas/narrative.schema';
+import { NarrativeJobRunner } from './narrative-job.runner';
+import { NarrativeJobService } from './narrative-job.service';
 
 @Module({
   imports: [
@@ -15,6 +17,6 @@ import { Narrative, NarrativeSchema } from './schemas/narrative.schema';
     MongooseModule.forFeature([{ name: Narrative.name, schema: NarrativeSchema }]),
   ],
   controllers: [NarrativesController],
-  providers: [NarrativesService],
+  providers: [NarrativesService, NarrativeJobService, NarrativeJobRunner],
 })
 export class NarrativesModule {}

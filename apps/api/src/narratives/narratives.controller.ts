@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Sse } from '@nestjs/common';
 import { GenerateNarrativeDto } from './dto/generate-narrative.dto';
 import { SuggestNarrativeDto } from './dto/suggest-narrative.dto';
 import { NarrativesService } from './narratives.service';
+import { NarrativeJobRunner } from './narrative-job.runner';
+import { NarrativeJobService } from './narrative-job.service';
 
 @Controller('narratives')
 export class NarrativesController {
-  constructor(private readonly narratives: NarrativesService) {}
+  constructor(private readonly narratives: NarrativesService, private readonly jobs: NarrativeJobService, private readonly runner: NarrativeJobRunner) {}
 
   @Get()
   findAll() {
@@ -14,7 +16,14 @@ export class NarrativesController {
 
   @Post('generate')
   generate(@Body() dto: GenerateNarrativeDto) {
-    return this.narratives.generate(dto);
+    const jobId = this.jobs.create();
+    void this.runner.run(jobId, dto);
+    return { jobId };
+  }
+
+  @Sse('jobs/:jobId/events')
+  events(@Param('jobId') jobId: string) {
+    return this.jobs.events(jobId);
   }
 
   @Post('suggestions')

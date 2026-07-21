@@ -24,6 +24,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 8. Users can connect one Threads account with official OAuth before any future manual publishing.
 9. Users can fill an editable reference title and contextual topic suggestion from a public reference URL.
 10. An operator can manually import one compliant public page as pattern knowledge or use Nutch to discover candidate URLs without automatic import.
+11. A creator sees narrative-generation stages over SSE and receives the saved draft in the review queue without refreshing the page.
 
 ## Functional requirements
 
@@ -33,6 +34,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 | Knowledge | Extract hook, emotion, conflict, information gap, discussion, authority, CTA, naturalness, and pattern summary. |
 | Retrieval | Embed compact metadata, retrieve semantic matches from Qdrant, then fall back to lexical matching. |
 | Narrative | Retrieve relevant patterns and generate a JSON draft through the orchestrator. |
+| Generation progress | Return a job ID, stream bounded server progress over SSE, persist the draft, then emit completion with the saved draft. |
 | Reference suggestion | Read transient public-link metadata and suggest an editable, broader discussion angle without inventing claims. |
 | Review | Flag generic AI patterns, article-style hooks, missing persona voice, missing contextual link bridges, observed incompatible concrete scenes, and obvious hard-selling phrases. |
 | Approval | Keep the draft unpublished until a user marks it approved. |

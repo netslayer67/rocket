@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { nextProgress, progressDetail, type ProgressAction, type ProgressState } from '@/lib/action-progress';
-import type { NarrativeInput, NarrativeSuggestion, Persona, Submit } from '@/lib/types';
+import type { NarrativeInput, NarrativeJobEvent, NarrativeSuggestion, NarrativeSubmit, Persona } from '@/lib/types';
 import { Field, SectionCard } from './ui';
 
-export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { personas: Persona[]; busy: boolean; onGenerate: Submit<NarrativeInput>; onSuggest: (url: string) => Promise<NarrativeSuggestion | undefined> }) {
+type Progress = { action: ProgressAction; value: number; state: ProgressState; message?: string };
+
+export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { personas: Persona[]; busy: boolean; onGenerate: NarrativeSubmit; onSuggest: (url: string) => Promise<NarrativeSuggestion | undefined> }) {
   const formRef = useRef<HTMLFormElement>(null);
   const intervalRef = useRef<number | undefined>(undefined);
   const timeoutRef = useRef<number | undefined>(undefined);
-  const [progress, setProgress] = useState<{ action: ProgressAction; value: number; state: ProgressState }>();
+  const [progress, setProgress] = useState<Progress>();
 
   useEffect(() => () => stopTimers(intervalRef, timeoutRef), []);
 
@@ -15,10 +17,14 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     event.preventDefault();
     const form = event.currentTarget;
     const values = new FormData(form);
-    beginProgress('generate', intervalRef, timeoutRef, setProgress);
-    const saved = await onGenerate({ topic: String(values.get('topic')), personaId: String(values.get('personaId')), referenceTitle: optional(values.get('referenceTitle')), referenceUrl: optional(values.get('referenceUrl')) });
+    setProgress({ action: 'generate', value: 8, state: 'pending' });
+    const saved = await onGenerate({ topic: String(values.get('topic')), personaId: String(values.get('personaId')), referenceTitle: optional(values.get('referenceTitle')), referenceUrl: optional(values.get('referenceUrl')) }, updateServerProgress);
     finishProgress(saved, intervalRef, timeoutRef, setProgress);
     if (saved) form.reset();
+  }
+
+  function updateServerProgress(event: NarrativeJobEvent) {
+    setProgress({ action: 'generate', value: event.progress, state: event.stage === 'error' ? 'error' : event.stage === 'complete' ? 'complete' : 'pending', message: event.message });
   }
 
   const cannotGenerate = busy || personas.length === 0;
@@ -43,7 +49,7 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
         <Field label="Judul referensi" hint="Boleh dikosongkan jika judul bisa dibaca dari link."><input name="referenceTitle" placeholder="Buku, artikel, repositori, atau produk" /></Field>
         <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari sudut • ${progress.value}%` : 'Cari sudut dari link'}</button><p className="text-xs leading-5 text-slate-500">Saran akan mengisi topik dan judul; kamu tetap memegang kendali untuk mengeditnya.</p></div>
         <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Menyusun draft • ${progress.value}%` : 'Buat draft untuk review'}</button>{!personas.length && <p className="mt-2 text-sm text-amber-200">Buat minimal satu suara tulisan sebelum membuat draft.</p>}</div>
-        {progress && <ProgressIndicator action={progress.action} value={progress.value} state={progress.state} />}
+        {progress && <ProgressIndicator action={progress.action} value={progress.value} state={progress.state} message={progress.message} />}
       </form>
     </SectionCard>
   );
@@ -59,17 +65,17 @@ function setField(form: HTMLFormElement, name: string, value: string) {
   if (field instanceof HTMLInputElement) field.value = value;
 }
 
-function ProgressIndicator({ action, value, state }: { action: ProgressAction; value: number; state: ProgressState }) {
-  return <div aria-live="polite" className="rounded-xl border border-cyan-400/20 bg-slate-950 p-3 md:col-span-2"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-medium text-cyan-100">Proses berjalan</p><p className="mt-0.5 text-xs leading-5 text-slate-400">{progressDetail(action, value, state)}</p></div><span className="shrink-0 text-sm font-semibold text-cyan-200">{value}%</span></div><div aria-label={`Progres perkiraan ${value}%`} aria-valuemax={100} aria-valuemin={0} aria-valuenow={value} className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800" role="progressbar"><div className="h-full rounded-full bg-cyan-400 transition-all duration-500 motion-reduce:transition-none" style={{ width: `${value}%` }} /></div></div>;
+function ProgressIndicator({ action, value, state, message }: { action: ProgressAction; value: number; state: ProgressState; message?: string }) {
+  return <div aria-live="polite" className="rounded-xl border border-cyan-400/20 bg-slate-950 p-3 md:col-span-2"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-medium text-cyan-100">{state === 'pending' ? 'Proses berjalan' : state === 'complete' ? 'Proses selesai' : 'Proses gagal'}</p><p className="mt-0.5 text-xs leading-5 text-slate-400">{message ?? progressDetail(action, value, state)}</p></div><span className="shrink-0 text-sm font-semibold text-cyan-200">{value}%</span></div><div aria-label={`Progres ${value}%`} aria-valuemax={100} aria-valuemin={0} aria-valuenow={value} className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800" role="progressbar"><div className="h-full rounded-full bg-cyan-400 transition-all duration-500 motion-reduce:transition-none" style={{ width: `${value}%` }} /></div></div>;
 }
 
-function beginProgress(action: ProgressAction, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<{ action: ProgressAction; value: number; state: ProgressState } | undefined>>) {
+function beginProgress(action: ProgressAction, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<Progress | undefined>>) {
   stopTimers(intervalRef, timeoutRef);
   setProgress({ action, value: 8, state: 'pending' });
   intervalRef.current = window.setInterval(() => setProgress((current) => current?.state === 'pending' ? { ...current, value: nextProgress(current.value) } : current), 500);
 }
 
-function finishProgress(success: boolean, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<{ action: ProgressAction; value: number; state: ProgressState } | undefined>>) {
+function finishProgress(success: boolean, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<Progress | undefined>>) {
   if (intervalRef.current) window.clearInterval(intervalRef.current);
   setProgress((current) => current ? { ...current, value: 100, state: success ? 'complete' : 'error' } : current);
   timeoutRef.current = window.setTimeout(() => setProgress(undefined), 900);

@@ -1,10 +1,4 @@
-# Action Progress
-
-## Purpose
-
-Make pending narrative-form actions visible without claiming client-side estimates are backend telemetry.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Estimated action progress
 The system SHALL show a labelled, animated, percentage-based estimated progress indicator while a narrative-form request is pending, and SHALL replace that estimate with server-reported progress when a narrative generation SSE job is active.
@@ -14,14 +8,13 @@ The system SHALL show a labelled, animated, percentage-based estimated progress 
 - **THEN** the form shows a pending percentage and readable current activity while it opens the generation job stream
 
 #### Scenario: Server reports progress
-
 - **WHEN** the generation SSE stream sends a stage and percentage
 - **THEN** the form displays that server value and activity instead of advancing the client estimate
 
-#### Scenario: Request is still pending
-- **WHEN** the backend request remains pending
-- **THEN** the estimated percentage advances but stops before completion
+#### Scenario: Reference suggestion remains pending
+- **WHEN** the creator requests a link suggestion
+- **THEN** the existing client estimate advances while the HTTP request remains pending
 
 #### Scenario: Request resolves
-- **WHEN** the request succeeds or fails
+- **WHEN** the generation stream or suggestion request succeeds or fails
 - **THEN** the form shows a brief success or failure result and removes the pending indicator

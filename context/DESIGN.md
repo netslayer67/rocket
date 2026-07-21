@@ -36,7 +36,7 @@ On small screens each section stacks vertically. On large screens the workspace 
 - Success and error feedback use an `aria-live` status message.
 - Review notes are visible before manual approval, and any blocking note disables approval.
 - A reference-link suggestion is explicit, fills editable fields, and explains that it is a starting point rather than a claim about a person or product.
-- Pending link-suggestion and narrative actions show an animated percentage labelled as an estimate; the UI never presents it as backend telemetry.
+- Pending link-suggestion actions show an animated percentage labelled as an estimate. Narrative generation shows the server-reported SSE stage and percentage; the UI never presents a client estimate as backend telemetry.
 - Semantic status is text-based (`Semantic ready` or `Index pending`) and does not rely only on color.
 - Status never relies on color alone; it is rendered as text.
 - Threads connection describes its status and token expiry in text and keeps unavailable actions hidden.

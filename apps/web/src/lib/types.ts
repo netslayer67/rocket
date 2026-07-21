@@ -37,3 +37,7 @@ export type KnowledgeInput = { sourceLabel: string; sourceUrl?: string; content:
 export type NarrativeInput = { topic: string; personaId: string; referenceTitle?: string; referenceUrl?: string };
 export type NarrativeSuggestion = { topic: string; referenceTitle: string };
 export type Submit<T> = (value: T) => Promise<boolean>;
+export type NarrativeJobStage = 'queued' | 'generating' | 'reviewing' | 'saved' | 'complete' | 'error';
+export type NarrativeJobEvent = { stage: NarrativeJobStage; progress: number; message: string; narrative?: Narrative; error?: string };
+export type NarrativeProgress = (event: NarrativeJobEvent) => void;
+export type NarrativeSubmit = (value: NarrativeInput, onProgress?: NarrativeProgress) => Promise<boolean>;

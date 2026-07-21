@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '@/lib/api';
-import type { Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeSuggestion, Persona, PersonaInput, ThreadsStatus } from '@/lib/types';
+import { api, startNarrativeJob, watchNarrativeJob } from '@/lib/api';
+import type { Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeProgress, NarrativeSuggestion, Persona, PersonaInput, ThreadsStatus } from '@/lib/types';
 
 export function useStudio() {
   const [personas, setPersonas] = useState<Persona[]>([]);
@@ -71,6 +71,24 @@ export function useStudio() {
     }
   }, []);
 
+  const generate = useCallback(async (input: NarrativeInput, onProgress?: NarrativeProgress) => {
+    setBusy(true);
+    setMessage('');
+    try {
+      const { jobId } = await startNarrativeJob(input);
+      const narrative = await watchNarrativeJob(jobId, (event) => onProgress?.(event));
+      refreshSequence.current += 1;
+      setNarratives((current) => [narrative, ...current.filter((item) => item._id !== narrative._id)]);
+      setMessage('Draft narasi siap untuk direview.');
+      return true;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Draft tidak dapat dibuat.');
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
   return {
     personas,
     knowledge,
@@ -82,14 +100,7 @@ export function useStudio() {
     createPersona: (input: PersonaInput) => run(() => api('/personas', { method: 'POST', body: JSON.stringify(input) }), 'Persona tersimpan.'),
     importKnowledge: (input: KnowledgeInput) => run(() => api('/knowledge/import', { method: 'POST', body: JSON.stringify(input) }), 'Pola tersimpan; isi sumber tidak disimpan.'),
     reindexKnowledge: () => run(() => api('/knowledge/reindex', { method: 'POST' }), 'Knowledge berhasil diperiksa dan diindeks ulang.'),
-    generate: (input: NarrativeInput) => run(
-      () => api<Narrative>('/narratives/generate', { method: 'POST', body: JSON.stringify(input) }),
-      'Draft narasi siap untuk direview.',
-      (narrative) => {
-        refreshSequence.current += 1;
-        setNarratives((current) => [narrative, ...current.filter((item) => item._id !== narrative._id)]);
-      },
-    ),
+    generate,
     suggestNarrative,
     approve: (id: string) => run(() => api(`/narratives/${id}/approve`, { method: 'PATCH' }), 'Draft disetujui untuk publish manual.'),
     disconnectThreads: () => run(() => api('/threads/connection', { method: 'DELETE' }), 'Akun Threads diputus dari Rocket Project.'),

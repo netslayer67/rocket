@@ -1,10 +1,4 @@
-# Narrative Queue Reliability
-
-## Purpose
-
-Keep confirmed generated drafts visible in the review queue even when dashboard refresh requests complete out of order.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Confirmed draft appears immediately
 The dashboard SHALL prepend the narrative returned by a successful generation job completion event to the review queue without requiring a second page refresh.

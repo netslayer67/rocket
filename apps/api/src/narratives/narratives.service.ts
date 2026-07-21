@@ -13,6 +13,7 @@ import { Narrative } from './schemas/narrative.schema';
 
 type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>;
 type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'>;
+export type NarrativeProgress = (stage: 'generating' | 'reviewing' | 'saved', progress: number, message: string) => void;
 
 @Injectable()
 export class NarrativesService {
@@ -23,7 +24,8 @@ export class NarrativesService {
     private readonly ai: AiOrchestratorService,
   ) {}
 
-  async generate(dto: GenerateNarrativeDto) {
+  async generate(dto: GenerateNarrativeDto, onProgress?: NarrativeProgress) {
+    onProgress?.('generating', 20, 'Mencari pola yang relevan dan menyusun narasi.');
     const persona = await this.personas.findById(dto.personaId);
     if (!persona) throw new NotFoundException('Persona tidak ditemukan');
     const reference = await this.resolveReference(dto);
@@ -46,12 +48,13 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
       json: true,
     });
     const generated = result.mode === 'demo' ? demoNarrative(dto, persona, reference) : parseNarrative(result.content);
+    onProgress?.('reviewing', 70, 'Memeriksa suara persona, konteks, dan posisi referensi.');
     const initialNotes = reviewNarrative(generated.title, generated.body, reviewContext(dto.topic, persona, reference));
     const rewritten = result.mode === 'live' ? await this.rewriteWeakDraft(generated, initialNotes, persona, reference, dto.topic) : { draft: generated, rewritten: false };
     const reviewerNotes = reviewNarrative(rewritten.draft.title, rewritten.draft.body, reviewContext(dto.topic, persona, reference));
     if (rewritten.rewritten) reviewerNotes.unshift('Quality gate menemukan kelemahan; sistem membuat ulang draft sekali.');
 
-    return this.narratives.create({
+    const saved = await this.narratives.create({
       topic: dto.topic,
       personaId: dto.personaId,
       referenceTitle: reference.title,
@@ -59,6 +62,8 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
       ...rewritten.draft,
       reviewerNotes,
     });
+    onProgress?.('saved', 90, 'Draft sudah disimpan ke review queue.');
+    return saved;
   }
 
   async suggest(dto: SuggestNarrativeDto) {
