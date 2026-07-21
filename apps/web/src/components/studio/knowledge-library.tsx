@@ -8,9 +8,9 @@ export function KnowledgeLibrary({ knowledge, busy, onReindex }: { knowledge: Kn
     <section className="mt-8" aria-labelledby="library-title">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="library-title" className="text-xl font-semibold tracking-tight text-white">Pola yang sudah dipelajari</h2>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">Rocket menyimpan struktur narasi, bukan teks thread asli. Pola ini dipakai untuk mencari sudut yang mirip saat membuat draft.</p>
-          <p id="semantic-index-help" className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">Index pencarian makna menghubungkan setiap pola dengan representasi di Qdrant. Perbarui index setelah menambah pola atau ketika status masih menunggu.</p>
+          <h2 id="library-title" className="text-xl font-semibold tracking-tight text-white">Pola yang dipelajari</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">Rocket menyimpan DNA narasi, bukan teks aslinya.</p>
+          <p id="semantic-index-help" className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">Index membantu AI menemukan pola yang mirip. Perbarui setelah menambah pola.</p>
         </div>
         <button className="button-secondary" disabled={reindexDisabled} aria-describedby="semantic-index-help" title={knowledge.length === 0 ? 'Tambahkan pola terlebih dahulu.' : undefined} onClick={() => void onReindex()}>Perbarui index pencarian</button>
       </div>
