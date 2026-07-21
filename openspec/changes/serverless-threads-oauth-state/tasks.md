@@ -6,5 +6,5 @@
 ## 2. Verification and release
 
 - [x] 2.1 Run `npm run check:lines` and `npm test`.
-- [ ] 2.2 Run `npm run build`, commit, and deploy the API production target.
+- [x] 2.2 Run `npm run build`, commit, and deploy the API production target.
 - [ ] 2.3 Verify production callback behavior with a fresh OAuth flow and archive the OpenSpec change.
