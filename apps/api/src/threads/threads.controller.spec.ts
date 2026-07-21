@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { ThreadsService } from './threads.service';
-import { ThreadsController } from './threads.controller';
+import { oauthCookiePath, ThreadsController } from './threads.controller';
 
 describe('ThreadsController', () => {
   it('returns a public success response when Meta checks the callback URL', async () => {
@@ -14,5 +14,12 @@ describe('ThreadsController', () => {
 
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.send).toHaveBeenCalledWith('Threads OAuth callback is ready.');
+  });
+
+  it.each([
+    ['http://localhost:4000/threads/callback', '/threads'],
+    ['https://rocket-api-hazel.vercel.app/api/threads/callback', '/api/threads'],
+  ])('derives the browser cookie path from %s', (redirectUri, expected) => {
+    expect(oauthCookiePath(redirectUri)).toBe(expected);
   });
 });

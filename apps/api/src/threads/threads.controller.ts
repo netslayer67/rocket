@@ -17,7 +17,7 @@ export class ThreadsController {
   @Get('connect')
   connect(@Res() response: CallbackResponse) {
     const { state, url } = this.threads.start();
-    response.setHeader('Set-Cookie', stateCookie(state, this.secureCookie));
+    response.setHeader('Set-Cookie', stateCookie(state, this.secureCookie, this.cookiePath));
     response.redirect(url);
   }
 
@@ -32,10 +32,10 @@ export class ThreadsController {
     if (!code && !state && !error) return response.status(200).send('Threads OAuth callback is ready.');
     try {
       await this.threads.complete(code, state, cookieValue(request.headers.cookie, 'threads_oauth_state'));
-      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie));
+      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie, this.cookiePath));
       response.redirect(this.dashboardUrl('connected'));
     } catch {
-      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie));
+      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie, this.cookiePath));
       response.redirect(this.dashboardUrl('error'));
     }
   }
@@ -53,16 +53,29 @@ export class ThreadsController {
   private get secureCookie() {
     return this.config.get<string>('THREADS_REDIRECT_URI', '').startsWith('https://') ? '; Secure' : '';
   }
+
+  private get cookiePath() {
+    return oauthCookiePath(this.config.get<string>('THREADS_REDIRECT_URI', ''));
+  }
 }
 
 function cookieValue(cookieHeader: string | undefined, name: string) {
   return cookieHeader?.split(';').map((value) => value.trim()).find((value) => value.startsWith(`${name}=`))?.slice(name.length + 1);
 }
 
-function stateCookie(state: string, secure: string) {
-  return `threads_oauth_state=${state}; HttpOnly; Path=/threads; SameSite=Lax; Max-Age=600${secure}`;
+function stateCookie(state: string, secure: string, path: string) {
+  return `threads_oauth_state=${state}; HttpOnly; Path=${path}; SameSite=Lax; Max-Age=600${secure}`;
 }
 
-function clearStateCookie(secure: string) {
-  return `threads_oauth_state=; HttpOnly; Path=/threads; SameSite=Lax; Max-Age=0${secure}`;
+function clearStateCookie(secure: string, path: string) {
+  return `threads_oauth_state=; HttpOnly; Path=${path}; SameSite=Lax; Max-Age=0${secure}`;
+}
+
+export function oauthCookiePath(redirectUri: string) {
+  try {
+    const pathname = new URL(redirectUri).pathname.replace(/\/+$/, '');
+    return pathname.replace(/\/[^/]+$/, '') || '/';
+  } catch {
+    return '/threads';
+  }
 }
