@@ -7,5 +7,5 @@
 ## 2. Documentation and release
 
 - [x] 2.1 Sync the queue reliability and UI delta specs into main specs.
-- [ ] 2.2 Run `npm run check:lines`, `npm test`, and `npm run build`.
-- [ ] 2.3 Commit, push, deploy the web app, verify the production queue, and archive this change.
+- [x] 2.2 Run `npm run check:lines`, `npm test`, and `npm run build`.
+- [x] 2.3 Commit, push, deploy the web app, verify the production queue, and archive this change.
