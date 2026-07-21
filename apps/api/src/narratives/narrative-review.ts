@@ -29,10 +29,14 @@ const sceneGroups: Array<[string, RegExp]> = [
   ['basket', /\b(?:basket|sepatu basket|foam|pivot|sprint|grip)\b/iu],
   ['lantai', /\b(?:lantai|keramik|indoor)\b/iu],
 ];
+const marketplaceLanguage = /\b(?:premium|adem\s+di\s+kulit|bahan(?:nya)?\s+(?:tipis|adem)|original|terlaris|best\s+seller|size\s+\d+|rp\s?[\d.]+|produk)\b/iu;
+const shoppingTransition = /\b(?:mulai\s+cari|nemuin|nemu|langsung\s+(?:cari|kepikiran)|cari\s+cara)\b[^.!?\n]{0,100}\b(?:produk|kemeja|sepatu|koleksi|shopee)\b/iu;
+const communityTangent = /\b(?:suasana\s+komunitas|komunitas\s+yang\s+(?:hangat|penting)|bagian\s+dari\s+komunitas)\b/iu;
+const weakProductQuestion = /\b(?:apakah|bakal)\b[^?\n]{0,120}\b(?:solusi|nyaman|cocok|bagus)\b[^?\n]*\?$/iu;
 
 export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[] };
 
-export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Show a small uncertainty or process of thought before concluding.`;
+export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Do not take the shortest path from a problem to a product: follow a real human concern first, then use a reference only when it naturally answers that concern. Never use marketplace descriptions such as "premium", "adem di kulit", or "bahan tipis" as if copied from a listing. Do not add a new topic such as community without building it. Show a small uncertainty or process of thought before concluding.`;
 
 export function naturalnessIssues(text: string) {
   return patterns.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
@@ -56,6 +60,7 @@ export function reviewNarrative(title: string, body: string, context: NarrativeR
   if (!hasInformationGap(body)) notes.push(block(`Information gap tidak terlihat${topic ? ` untuk topik ${topic}` : ''}; sisakan detail atau kegelisahan yang membuat orang ingin lanjut.`));
   if (!hasProcessThought(body) && !hasConcreteObservation(body)) notes.push(block('Proses berpikir tidak terlihat; tunjukkan observasi konkret atau keraguan personal sebelum menyimpulkan.'));
   if (hasBroadClosingQuestion(body)) notes.push(block('Pertanyaan penutup terlalu umum; ajukan detail yang bisa diperdebatkan, bukan sekadar meminta pendapat.'));
+  if (hasWeakProductQuestion(body)) notes.push(block('Kualitas diskusi rendah; jangan jadikan pertanyaan akhir sebagai uji coba produk.'));
   if (referenceUrl && body.includes(referenceUrl) && !hasReferenceBridge(body, referenceTitle, referenceUrl)) {
     notes.push(block('Link tidak memiliki jembatan konteks ke judul referensi.'));
   }
@@ -63,6 +68,13 @@ export function reviewNarrative(title: string, body: string, context: NarrativeR
   if (conflict) notes.push(block(`Detail adegan tidak koheren: ${conflict}.`));
   const drift = contextDrift(body);
   if (drift) notes.push(block(`Context drift terdeteksi: ${drift}.`));
+  if (marketplaceLanguage.test(body)) notes.push(block('Bahasa marketplace terdeteksi; ubah deskripsi listing menjadi observasi pribadi.'));
+  const injectionScore = productInjectionScore(body, referenceTitle, referenceUrl);
+  if (injectionScore >= 60) notes.push(block(`Product Injection Score ${injectionScore}/100; cerita terasa dibuat untuk mengantar produk.`));
+  const reasoningIssue = referenceReasoningIssue(body, referenceUrl);
+  if (reasoningIssue) notes.push(block(`Reasoning flow terputus: ${reasoningIssue}.`));
+  const topicTangent = topicDrift(body, topic);
+  if (topicTangent) notes.push(block(`Topic drift terdeteksi: ${topicTangent}.`));
   if (/\b(klik sekarang|beli sekarang|diskon|promo|terbatas)\b/i.test(body)) {
     notes.push('Bahasa promosi terdeteksi; edit sebelum dipublikasikan.');
   }
@@ -120,6 +132,36 @@ function contextDrift(body: string) {
   if (groups.has('layangan') && groups.has('lantai')) return 'layangan dan lantai tanpa jembatan';
   if (groups.has('layangan') && groups.has('basket')) return 'layangan dan perlengkapan basket tanpa jembatan';
   return undefined;
+}
+
+function productInjectionScore(body: string, referenceTitle?: string, referenceUrl?: string) {
+  const hasReference = Boolean((referenceUrl && body.includes(referenceUrl)) || (referenceTitle && body.toLowerCase().includes(referenceTitle.toLowerCase())));
+  if (!hasReference) return 0;
+  let score = 15;
+  if (shoppingTransition.test(body)) score += 45;
+  if (marketplaceLanguage.test(body)) score += 30;
+  if (referenceUrl && body.indexOf(referenceUrl) > 0) score += 10;
+  return Math.min(100, score);
+}
+
+function hasWeakProductQuestion(body: string) {
+  const withoutTrailingUrl = body.trim().replace(/\s*https?:\/\/\S+\s*$/u, '').trim();
+  return weakProductQuestion.test(withoutTrailingUrl);
+}
+
+function referenceReasoningIssue(body: string, referenceUrl?: string) {
+  if (!referenceUrl) return undefined;
+  const urlIndex = body.indexOf(referenceUrl);
+  if (urlIndex < 0) return undefined;
+  const beforeReference = body.slice(0, urlIndex);
+  if (hasProcessThought(beforeReference) || hasConcreteObservation(beforeReference)) return undefined;
+  return 'referensi muncul sebelum ada observasi atau keraguan personal';
+}
+
+function topicDrift(body: string, topic?: string) {
+  if (!communityTangent.test(body)) return undefined;
+  if (/\b(?:komunitas|teman|tamu|dress\s*code)\b/iu.test(topic ?? '')) return undefined;
+  return 'komunitas muncul tanpa dibangun dari topik atau adegan sebelumnya';
 }
 
 function hasReferenceBridge(body: string, title: string | undefined, url: string) {

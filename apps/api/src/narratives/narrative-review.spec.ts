@@ -82,4 +82,20 @@ describe('narrative naturalness review', () => {
 
     expect(isNaturalnessBlocked(notes)).toBe(false);
   });
+
+  it('blocks a beach-wedding story that carries marketplace copy to a product', () => {
+    const url = 'https://shop.example/batik';
+    const notes = reviewNarrative(
+      'Nikahan di pantai, panasnya ngga ada lawan',
+      `Gue lagi mikirin acara nikahan di pantai.\n\nAwalnya gue kira semua bakal segar karena ombak, tapi matahari terus menempel.\n\nJadi gue mulai cari cara supaya semua tetap nyaman. Gue nemuin kemeja batik pria premium yang terkesan ringan dan adem di kulit.\n\nTapi suasana komunitas yang hangat itu penting banget. Apakah kemeja ini bakal jadi solusi yang nyaman? ${url}`,
+      { topic: 'Nikahan di pantai', vocabulary: ['gue'], referenceTitle: 'Kemeja Batik Pria Premium', referenceUrl: url },
+    );
+
+    const text = notes.join(' ');
+    expect(text).toContain('Product Injection Score');
+    expect(text).toContain('Bahasa marketplace');
+    expect(text).toContain('Kualitas diskusi rendah');
+    expect(text).toContain('Topic drift');
+    expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
 });

@@ -67,3 +67,18 @@ The system SHALL block a draft when its opening has no concrete curiosity or ten
 #### Scenario: Draft shows active thinking
 - **WHEN** the body includes a first-person observation or a cue such as “gw kira”, “awalnya”, “jangan-jangan”, “belum yakin”, or “baru kepikiran”
 - **THEN** the reviewer does not add the human-thinking warning
+
+### Requirement: Product injection and unsupported-topic gate
+The system SHALL block a reference that is introduced through marketplace language, an abrupt shopping transition, a broken reasoning flow, or an unsupported discussion tangent.
+
+#### Scenario: Reference is carried into a scene
+- **WHEN** a draft takes the shortest path from a topic to a product and uses listing-like wording
+- **THEN** the reviewer records a bounded Product Injection Score and a blocking explanation
+
+#### Scenario: Reference follows human reasoning
+- **WHEN** a draft shows a concrete concern or uncertainty before a contextual reference bridge
+- **THEN** the reviewer does not block it for product injection or reasoning flow
+
+#### Scenario: Topic drift appears
+- **WHEN** a new discussion domain such as an unexplained community conclusion appears without support from the topic or scene
+- **THEN** the reviewer records a blocking topic-drift warning
