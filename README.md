@@ -22,6 +22,8 @@ Create a Meta App with the Threads use case, register the exact `THREADS_REDIREC
 
 After upgrading existing V1 data, use **Reindex semantic search** in Knowledge Library or `POST /knowledge/reindex`. If Qdrant or the embedding model is unavailable, import and generation still use the lexical fallback.
 
+Developers can add the reviewed image-derived DNA fixture with `npm run seed:knowledge-dna`, then call `POST /knowledge/reindex`. The fixture stores pattern metadata only, never screenshots or raw thread text.
+
 ## Development rules
 
 Read [AGENTS.md](AGENTS.md) and the documents in [context](context) before a meaningful change. Use the local OpenSpec skills for proposal → implementation → sync → archive; Ponytail keeps the implementation minimal and safe.

@@ -30,6 +30,8 @@ ThreadsConnection 1 ─── 1 local creator account (V2 single-account boundar
 
 Imported `content` is used only while the knowledge extraction request runs. It must not be added to the `knowledge` schema, logs, or error output. Narrative drafts and AI run metadata remain available for manual review and later analytics.
 
+Curated image-derived DNA in `apps/api/data/knowledge-dna.json` contains metadata only. Run `npm run seed:knowledge-dna` to upsert it, then reindex so Qdrant receives the same compact metadata representation.
+
 Reference preview HTML and metadata are transient request input. They are never persisted; only a creator-selected `referenceTitle`, `referenceUrl`, and generated narrative draft may be stored.
 
 Crawler HTML and cleaned page text are also transient request input to the existing knowledge import contract. Scrapy creates no database records of its own, and Nutch candidate discovery uses a deleted-on-exit temporary work directory. Only the resulting extracted knowledge metadata and vector may remain.

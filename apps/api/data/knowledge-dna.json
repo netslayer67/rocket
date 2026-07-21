@@ -1,0 +1,40 @@
+[
+  {
+    "sourceLabel": "DNA: urgent safety warning with contextual locator",
+    "topics": ["clinic safety", "aesthetic treatment", "consumer caution", "whistleblower story"],
+    "hookType": "urgent emotional warning",
+    "emotion": "anger, alarm, solidarity",
+    "narrativeType": "personal testimony and public warning",
+    "curiosityLevel": 5,
+    "linkPlacement": "ending",
+    "patternSummary": "Urgent hook in caps -> witness detail -> corroborating authority -> escalating concrete claim -> contextual locator -> firsthand-experience question; reuse only with verified facts.",
+    "conflict": "promised treatment versus suspected substitution or unsafe practice",
+    "persona": "protective, expressive, confrontational friend",
+    "style": "high-energy colloquial, caps for emphasis, slang, direct address, expressive emoji; fact-check sensitive claims",
+    "vocabulary": ["izin ya guys", "sumpah", "keren banget", "speakup", "issue", "nahan sakit", "ribut", "yg dimaksud", "pernah treatment"],
+    "informationGap": "what actually happened and whether other people had the same experience",
+    "discussionPattern": "give a specific warning, then invite firsthand reports without asserting unverified facts",
+    "authorityType": "firsthand witness plus corroborating professional",
+    "ctaStyle": "contextual locator with explicit name, followed by an experience question",
+    "naturalness": 4
+  },
+  {
+    "sourceLabel": "DNA: low-budget coffee hack with visual proof",
+    "topics": ["iced coffee", "low-budget recipe", "home cafe", "ingredient substitutions"],
+    "hookType": "confession and curiosity promise",
+    "emotion": "playful curiosity, gratitude, savings",
+    "narrativeType": "visual tutorial and recipe breakdown",
+    "curiosityLevel": 5,
+    "linkPlacement": "reply",
+    "patternSummary": "Playful confession or apology -> concrete visual proof -> reveal the non-negotiable texture step -> numbered ingredients and alternatives -> practical search caveat.",
+    "conflict": "recreating cafe texture while keeping the recipe affordable",
+    "persona": "enthusiastic home barista sharing a tested shortcut",
+    "style": "casual, playful, concise, visual-first, low-budget, emoji-led emphasis",
+    "vocabulary": ["sungkem", "yg ngide", "kuncian", "wajib", "gak boleh skip", "hemat", "lowbudget", "alternatif", "gak sih", "mulai agak susah dicari"],
+    "informationGap": "which small step makes the coffee creamy instead of ordinary",
+    "discussionPattern": "show the result, teach the exact sequence, then invite substitutions or adaptations",
+    "authorityType": "repeated personal experiment",
+    "ctaStyle": "numbered ingredient references with alternatives, never a bare sales CTA",
+    "naturalness": 5
+  }
+]

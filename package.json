@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npm run dev --workspace @rocket/web",
     "dev:api": "npm run start:dev --workspace @rocket/api",
+    "seed:knowledge-dna": "node apps/api/scripts/seed-knowledge-dna.mjs",
     "migrate:atlas": "node apps/api/scripts/migrate-to-atlas.mjs",
     "build": "npm run build --workspaces",
     "test": "npm run test:lines && npm run test --workspace @rocket/api",
