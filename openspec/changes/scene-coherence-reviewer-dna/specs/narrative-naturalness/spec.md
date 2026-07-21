@@ -1,34 +1,6 @@
 # Narrative Naturalness
 
-## Purpose
-
-Prevent predictable generic AI phrasing from reaching the manual approval queue while preserving concrete, discussion-led narrative drafts.
-## Requirements
-### Requirement: Generic AI anti-pattern detection
-The system SHALL reject em dashes and a maintained deterministic set of generic contrast-reframing, abstract-observation, promotional-transition, and filler patterns in narrative titles and bodies.
-
-#### Scenario: Generic contrast framing is generated
-- **WHEN** a generated draft contains a prohibited contrast-reframing phrase
-- **THEN** the reviewer records a naturalness warning with the detected pattern
-
-#### Scenario: Em dash is generated
-- **WHEN** a generated draft contains an em dash
-- **THEN** the reviewer records a naturalness warning
-
-#### Scenario: Abstract AI smell is generated
-- **WHEN** a generated draft uses generic metaphors, adjectives, unexplained mystery, or promotional transitions instead of a concrete observation
-- **THEN** the reviewer records a blocking naturalness warning
-
-### Requirement: One bounded naturalness rewrite
-The system SHALL request one rewrite through the AI Orchestrator when a live generated draft violates the anti-pattern library or a blocking narrative-quality gate.
-
-#### Scenario: Rewrite resolves a blocker
-- **WHEN** the rewritten draft no longer has a detected anti-pattern or quality-gate failure
-- **THEN** the system stores the rewritten draft for ordinary manual review
-
-#### Scenario: Rewrite still violates a gate
-- **WHEN** the one allowed rewrite still has a detected anti-pattern or quality-gate failure
-- **THEN** the system stores it as a draft with a blocking reviewer warning
+## MODIFIED Requirements
 
 ### Requirement: Human voice and contextual-reference quality gate
 The system SHALL block a draft that lacks a conversational first-person voice, does not reflect the selected persona's first-person vocabulary, presents a reference URL without a concrete textual bridge to its reference title, contains a detected incompatible concrete scene, or uses abstract AI-smell language in place of a specific observation.

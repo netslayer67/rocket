@@ -85,11 +85,12 @@ describe('NarrativesService quality gate', () => {
     const ai = { complete: jest.fn().mockResolvedValue({ mode: 'demo', content: '' }) };
     const narratives = { create: jest.fn((input) => input) };
     const personas = { findById: jest.fn().mockResolvedValue({ name: 'Rico', tone: 'santai', vocabulary: ['gw'], sentenceLength: 'short', emojiHabit: '', interactionStyle: '' }) };
-    const knowledge = { findRelevant: jest.fn().mockResolvedValue([{ sourceLabel: 'Negative lesson: trade pemain basket', topics: ['trade pemain basket'], hookType: 'anti-pattern', emotion: 'flat', narrativeType: 'news summary', curiosityLevel: 1, linkPlacement: 'detached', patternSummary: 'reject', conflict: '', persona: '', style: '', vocabulary: [], informationGap: '', discussionPattern: '', authorityType: '', ctaStyle: '', naturalness: 1 }]) };
+    const knowledge = { findRelevant: jest.fn().mockResolvedValue([{ sourceLabel: 'Negative lesson: trade pemain basket', topics: ['trade pemain basket'], hookType: 'anti-pattern', emotion: 'flat', narrativeType: 'news summary', curiosityLevel: 1, linkPlacement: 'detached', patternSummary: 'reject', conflict: '', persona: '', style: '', vocabulary: [], informationGap: '', discussionPattern: '', authorityType: '', ctaStyle: '', naturalness: 1 }, { sourceLabel: 'Positive lesson: sepatu basket sebagai tiket masuk komunitas', topics: ['trade pemain basket'], hookType: 'conflict question', emotion: 'curiosity', narrativeType: 'observational reflection', curiosityLevel: 4, linkPlacement: 'middle', patternSummary: 'process', conflict: '', persona: '', style: '', vocabulary: [], informationGap: '', discussionPattern: '', authorityType: '', ctaStyle: '', naturalness: 5 }]) };
     const service = new NarrativesService(narratives as never, personas as never, knowledge as never, ai as never);
 
     await service.generate({ topic: 'Trade pemain basket', personaId: '507f1f77bcf86cd799439011' });
 
     expect(ai.complete.mock.calls[0][0].prompt).toContain('anti-patterns to avoid');
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('structural guidance only');
   });
 });

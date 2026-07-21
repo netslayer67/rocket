@@ -48,7 +48,11 @@ The system SHALL treat content received from the compliant crawler exactly as on
 - **THEN** existing extraction and indexing paths store only compact pattern metadata and vectors derived from it
 
 ### Requirement: Negative reviewer lesson metadata
-The system SHALL support storing compact reviewer lessons as knowledge metadata, and generation SHALL treat low-naturalness or explicitly anti-pattern lessons as constraints to avoid rather than prose examples to copy.
+The system SHALL support storing compact positive and negative reviewer lessons as knowledge metadata, and generation SHALL treat low-naturalness or explicitly anti-pattern lessons as constraints to avoid rather than prose examples to copy.
+
+#### Scenario: Positive lesson is stored
+- **WHEN** an operator adds a near-approved narrative lesson
+- **THEN** MongoDB stores its reusable hook, voice, process, link, and coherence pattern without raw source text
 
 #### Scenario: Reviewer lesson is stored
 - **WHEN** an operator adds a negative narrative lesson
@@ -57,3 +61,7 @@ The system SHALL support storing compact reviewer lessons as knowledge metadata,
 #### Scenario: Negative lesson is retrieved
 - **WHEN** a related narrative topic retrieves a lesson marked `anti-pattern` or with naturalness 2 or lower
 - **THEN** the narrative prompt tells the model to avoid the failure mode and never reproduce source text
+
+#### Scenario: Positive lesson is retrieved
+- **WHEN** a related narrative topic retrieves a lesson with naturalness 4 or higher
+- **THEN** the narrative prompt uses its pattern fields as guidance while preserving the current topic, persona, and reference

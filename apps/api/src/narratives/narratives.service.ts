@@ -41,7 +41,7 @@ REFERENCE URL: ${reference.url ?? 'none'}
 PERSONA: ${JSON.stringify(persona)}
 REUSABLE PATTERNS: ${JSON.stringify(patterns.map(patternContext))}
 
-Rules: the title must sound like a spoken thread opening, never a news/article headline. Start the body with a short first-person observation using the persona's own first-person vocabulary when provided. Leave one specific tension or detail unresolved; do not force a broad closing question. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement. Treat patterns labeled 'Negative lesson' or scored naturalness 2 or lower as anti-patterns to avoid, never as writing examples.`,
+Rules: the title must sound like a spoken thread opening, never a news/article headline. Start the body with a short first-person observation using the persona's own first-person vocabulary when provided. Show a small uncertainty or process of thought (for example, 'awalnya', 'gw kira', 'jangan-jangan', or 'baru kepikiran') before concluding. Leave one specific tension or detail unresolved; do not force a broad closing question. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement. Treat patterns labeled 'Negative lesson' or scored naturalness 2 or lower as anti-patterns to avoid, never as writing examples. Treat naturalness 4 or higher patterns as structural guidance only; never copy their wording.`,
       maxTokens: 1100,
       json: true,
     });
@@ -108,7 +108,7 @@ REFERENCE URL: ${reference.url ?? 'none'}
 REVIEWER FAILURES: ${JSON.stringify(notes)}
 DRAFT: ${JSON.stringify(draft)}
 
-Fix every reviewer failure. Open with the persona's first-person voice and a concrete information gap. Make the title conversational, not journalistic. If there is a URL, name its reference context before the URL and make the connection explicit.`,
+Fix every reviewer failure. Open with the persona's first-person voice and a concrete information gap. Show the narrator thinking or doubting before the conclusion. Keep every activity, object, and environment in one believable scene unless an explicit comparison bridge is present. Replace abstract metaphors and generic adjectives with a specific sensory observation. Make the title conversational, not journalistic. If there is a URL, name its reference context before the URL and make the connection explicit.`,
         maxTokens: 900,
         json: true,
       });

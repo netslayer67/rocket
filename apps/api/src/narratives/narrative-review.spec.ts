@@ -64,4 +64,22 @@ describe('narrative naturalness review', () => {
     expect(notes.join(' ')).toContain('Pertanyaan penutup terlalu umum');
     expect(isNaturalnessBlocked(notes)).toBe(true);
   });
+
+  it('blocks abstract shoe language and missing thought process', () => {
+    const notes = reviewNarrative('Sepatu neon yang dramatis', 'Sepatu ini menambahkan dimensi visual dan punya rahasia tersendiri.');
+
+    expect(notes.join(' ')).toContain('Proses berpikir tidak terlihat');
+    expect(notes.join(' ')).toContain('generic metaphor');
+    expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
+
+  it('allows a coherent personal observation with active doubt', () => {
+    const notes = reviewNarrative(
+      'Sepatu basket atau tiket masuk komunitas?',
+      'Gw kira adik gue pilih sepatu ini karena logonya. Makin dipikir, mungkin dia cuma pengin merasa nyambung sama teman-temannya di lapangan.',
+      { vocabulary: ['gw'] },
+    );
+
+    expect(isNaturalnessBlocked(notes)).toBe(false);
+  });
 });
