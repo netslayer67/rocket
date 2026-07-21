@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npm run dev --workspace @rocket/web",
     "dev:api": "npm run start:dev --workspace @rocket/api",
+    "migrate:atlas": "node apps/api/scripts/migrate-to-atlas.mjs",
     "build": "npm run build --workspaces",
     "test": "npm run test:lines && npm run test --workspace @rocket/api",
     "test:lines": "node scripts/check-file-length.test.mjs",

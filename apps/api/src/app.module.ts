@@ -14,6 +14,7 @@ import { ThreadsModule } from './threads/threads.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/rocket'),
+        dbName: config.get<string>('MONGODB_DATABASE'),
       }),
     }),
     AiModule,
