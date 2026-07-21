@@ -1,9 +1,5 @@
-# Narrative Studio UI
+## MODIFIED Requirements
 
-## Purpose
-
-Define the user-facing V1 workflow for creating persona-aligned narratives and explicitly approving them before manual publishing.
-## Requirements
 ### Requirement: Guided V1 workspace
 
 The dashboard SHALL present the V1 workflow in the order orientation, persona, knowledge pattern, narrative draft, and manual approval. The layout SHALL be mobile-first and compact by default, expand independent setup sections only at wider breakpoints, and use literal Indonesian copy that names each action and result.

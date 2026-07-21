@@ -1,9 +1,5 @@
-# AI Slop Guardrails
+## MODIFIED Requirements
 
-## Purpose
-
-Define the strict UI quality gate that keeps Rocket's creator dashboard specific, accessible, and human-designed instead of converging on generic AI-generated SaaS patterns.
-## Requirements
 ### Requirement: UI changes pass the AI-slop quality gate
 
 The `apps/web` dashboard SHALL be reviewed against the canonical anti-slop policy before a new screen, component, or substantial visual change is accepted. The review SHALL cover visual details, typography, color and contrast, layout and space, motion, copy, imagery, responsive behavior, and accessibility. A mobile-first redesign SHALL record the rendered route, narrow and wide viewport checks, keyboard/focus checks, reduced-motion behavior, and any documented exception.

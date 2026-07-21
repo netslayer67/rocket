@@ -35,14 +35,14 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
   }
 
   return (
-    <SectionCard title="3. Rangkai narrative" description="Mulai dari insight. Referensi akan diperlakukan sebagai konteks, bukan CTA." wide>
+    <SectionCard step="03" title="Buat draft narasi" description="Mulai dari topik atau fenomena. Referensi hanya dipakai jika hubungannya masuk akal." wide>
       <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
-        <Field label="Topik atau fenomena"><input name="topic" required placeholder="Kenapa kebiasaan kecil terasa sulit dimulai" /></Field>
-        <Field label="Persona"><select name="personaId" required defaultValue="" disabled={personas.length === 0}><option value="" disabled>{personas.length ? 'Pilih persona' : 'Buat persona terlebih dahulu'}</option>{personas.map((persona) => <option key={persona._id} value={persona._id}>{persona.name}</option>)}</select></Field>
-        <Field label="Judul referensi"><input name="referenceTitle" placeholder="Buku, artikel, repositori, atau produk" /></Field>
-        <Field label="Link referensi" hint="Gunakan saran untuk mengisi topik dan judul; keduanya tetap dapat diedit."><input name="referenceUrl" type="url" placeholder="https://... (opsional)" /></Field>
-        <div className="md:col-span-2"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari saran • ${progress.value}%` : 'Isi saran dari link'}</button></div>
-        <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Merangkai draft • ${progress.value}%` : 'Buat draft narrative'}</button>{!personas.length && <p className="mt-2 text-sm text-amber-200">Simpan minimal satu persona sebelum membuat draft.</p>}</div>
+        <Field label="Topik atau fenomena" hint="Tulis hal yang ingin dibahas, bukan nama produknya."><input name="topic" required placeholder="Kenapa orang mudah percaya rumor" /></Field>
+        <Field label="Pakai suara"><select name="personaId" required defaultValue="" disabled={personas.length === 0}><option value="" disabled>{personas.length ? 'Pilih persona' : 'Buat suara terlebih dahulu'}</option>{personas.map((persona) => <option key={persona._id} value={persona._id}>{persona.name}</option>)}</select></Field>
+        <Field label="Link referensi" hint="Tempel link jika ada; topik tetap boleh berbeda selama jembatannya jelas."><input name="referenceUrl" type="url" placeholder="https://... (opsional)" /></Field>
+        <Field label="Judul referensi" hint="Boleh dikosongkan jika judul bisa dibaca dari link."><input name="referenceTitle" placeholder="Buku, artikel, repositori, atau produk" /></Field>
+        <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari sudut • ${progress.value}%` : 'Cari sudut dari link'}</button><p className="text-xs leading-5 text-slate-500">Saran akan mengisi topik dan judul; kamu tetap memegang kendali untuk mengeditnya.</p></div>
+        <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Menyusun draft • ${progress.value}%` : 'Buat draft untuk review'}</button>{!personas.length && <p className="mt-2 text-sm text-amber-200">Buat minimal satu suara tulisan sebelum membuat draft.</p>}</div>
         {progress && <ProgressIndicator action={progress.action} value={progress.value} state={progress.state} />}
       </form>
     </SectionCard>
@@ -60,7 +60,7 @@ function setField(form: HTMLFormElement, name: string, value: string) {
 }
 
 function ProgressIndicator({ action, value, state }: { action: ProgressAction; value: number; state: ProgressState }) {
-  return <div aria-live="polite" className="rounded-lg border border-cyan-400/20 bg-cyan-400/5 p-3 md:col-span-2"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-medium text-cyan-100">Progres perkiraan</p><p className="mt-0.5 text-xs text-slate-400">{progressDetail(action, value, state)}</p></div><span className="shrink-0 text-sm font-semibold text-cyan-200">{value}%</span></div><div aria-label={`Progres perkiraan ${value}%`} aria-valuemax={100} aria-valuemin={0} aria-valuenow={value} className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800" role="progressbar"><div className="h-full rounded-full bg-cyan-400 transition-all duration-500 motion-reduce:transition-none" style={{ width: `${value}%` }} /></div></div>;
+  return <div aria-live="polite" className="rounded-xl border border-cyan-400/20 bg-slate-950 p-3 md:col-span-2"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-medium text-cyan-100">Proses berjalan</p><p className="mt-0.5 text-xs leading-5 text-slate-400">{progressDetail(action, value, state)}</p></div><span className="shrink-0 text-sm font-semibold text-cyan-200">{value}%</span></div><div aria-label={`Progres perkiraan ${value}%`} aria-valuemax={100} aria-valuemin={0} aria-valuenow={value} className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800" role="progressbar"><div className="h-full rounded-full bg-cyan-400 transition-all duration-500 motion-reduce:transition-none" style={{ width: `${value}%` }} /></div></div>;
 }
 
 function beginProgress(action: ProgressAction, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<{ action: ProgressAction; value: number; state: ProgressState } | undefined>>) {

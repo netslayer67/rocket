@@ -16,12 +16,12 @@ export function KnowledgeForm({ busy, onImport }: { busy: boolean; onImport: Sub
   }
 
   return (
-    <SectionCard title="2. Ambil pola" description="Tempel sumber untuk diekstrak menjadi pola; teks aslinya tidak disimpan.">
+    <SectionCard step="02" title="Tambahkan pola" description="Tempel contoh thread. Rocket mengambil strukturnya, bukan menyalin isinya.">
       <form className="grid gap-3" onSubmit={submit}>
-        <Field label="Label sumber"><input name="sourceLabel" required placeholder="Thread tentang kebiasaan kecil" /></Field>
-        <Field label="URL sumber"><input name="sourceUrl" type="url" placeholder="https://... (opsional)" /></Field>
-        <Field label="Sumber"><textarea name="content" required rows={7} placeholder="Tempel thread atau catatan di sini." /></Field>
-        <button className="button" disabled={busy}>Ekstrak pola narasi</button>
+        <Field label="Nama pola"><input name="sourceLabel" required placeholder="Observasi kecil yang membuka diskusi" /></Field>
+        <Field label="URL sumber" hint="Opsional; hanya label dan pola yang disimpan."><input name="sourceUrl" type="url" placeholder="https://..." /></Field>
+        <Field label="Contoh thread"><textarea name="content" required rows={7} placeholder="Tempel thread atau catatan yang ingin dipelajari." /></Field>
+        <button className="button mt-1" disabled={busy}>{busy ? 'Mempelajari pola...' : 'Simpan pola'}</button>
       </form>
     </SectionCard>
   );
