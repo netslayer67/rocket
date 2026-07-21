@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.env
+coverage
+*.log
+.env
+**/.env
+apps/crawler/.env
+apps/crawler/.venv/
+apps/crawler/.scrapy/
+apps/crawler/**/__pycache__/

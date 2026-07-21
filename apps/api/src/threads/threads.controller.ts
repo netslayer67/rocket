@@ -1,0 +1,68 @@
+import { Controller, Delete, Get, Query, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ThreadsService } from './threads.service';
+
+type CallbackRequest = { headers: { cookie?: string } };
+type CallbackResponse = { redirect: (url: string) => void; setHeader: (name: string, value: string) => void; status: (code: number) => CallbackResponse; send: (body: string) => void };
+
+@Controller('threads')
+export class ThreadsController {
+  constructor(private readonly threads: ThreadsService, private readonly config: ConfigService) {}
+
+  @Get('status')
+  status() {
+    return this.threads.status();
+  }
+
+  @Get('connect')
+  connect(@Res() response: CallbackResponse) {
+    const { state, url } = this.threads.start();
+    response.setHeader('Set-Cookie', stateCookie(state, this.secureCookie));
+    response.redirect(url);
+  }
+
+  @Get('callback')
+  async callback(
+    @Query('code') code: string | undefined,
+    @Query('state') state: string | undefined,
+    @Query('error') error: string | undefined,
+    @Req() request: CallbackRequest,
+    @Res() response: CallbackResponse,
+  ) {
+    if (!code && !state && !error) return response.status(200).send('Threads OAuth callback is ready.');
+    try {
+      await this.threads.complete(code, state, cookieValue(request.headers.cookie, 'threads_oauth_state'));
+      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie));
+      response.redirect(this.dashboardUrl('connected'));
+    } catch {
+      response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie));
+      response.redirect(this.dashboardUrl('error'));
+    }
+  }
+
+  @Delete('connection')
+  disconnect() {
+    return this.threads.disconnect();
+  }
+
+  private dashboardUrl(result: 'connected' | 'error') {
+    const origin = this.config.get<string>('WEB_ORIGIN', 'http://localhost:3000')?.replace(/\/$/, '');
+    return `${origin}?threads=${result}`;
+  }
+
+  private get secureCookie() {
+    return this.config.get<string>('THREADS_REDIRECT_URI', '').startsWith('https://') ? '; Secure' : '';
+  }
+}
+
+function cookieValue(cookieHeader: string | undefined, name: string) {
+  return cookieHeader?.split(';').map((value) => value.trim()).find((value) => value.startsWith(`${name}=`))?.slice(name.length + 1);
+}
+
+function stateCookie(state: string, secure: string) {
+  return `threads_oauth_state=${state}; HttpOnly; Path=/threads; SameSite=Lax; Max-Age=600${secure}`;
+}
+
+function clearStateCookie(secure: string) {
+  return `threads_oauth_state=; HttpOnly; Path=/threads; SameSite=Lax; Max-Age=0${secure}`;
+}

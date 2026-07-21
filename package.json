@@ -1,0 +1,14 @@
+{
+  "name": "rocket-project",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @rocket/web",
+    "dev:api": "npm run start:dev --workspace @rocket/api",
+    "build": "npm run build --workspaces",
+    "test": "npm run test:lines && npm run test --workspace @rocket/api",
+    "test:lines": "node scripts/check-file-length.test.mjs",
+    "check:lines": "node scripts/check-file-length.mjs",
+    "check": "npm run check:lines && npm test && npm run build"
+  }
+}
