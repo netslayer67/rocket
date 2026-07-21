@@ -10,6 +10,9 @@
 6. Generate embeddings only through `AiOrchestratorService`; Qdrant stores vector IDs and Mongo knowledge IDs, never raw sources.
 7. Keep one embedding model per Qdrant collection. Create a new collection and reindex when vector dimensions change.
 8. Crawling is manual in V1: obey robots.txt, reject non-public targets, bound domain/rate/size/page count, and never retain raw fetched content or Nutch artifacts.
+9. Every new or materially changed `apps/web` UI surface MUST pass the strict anti-slop, accessibility, responsive, and motion checklist in `context/AI-SLOP.md`.
+10. Generic AI UI patterns are not defaults. A deliberate exception MUST record user value, simpler alternative, scope, and rollback condition.
+11. Do not add a UI dependency, icon library, detector, token system, or visual-regression service for speculative future needs; follow the Ponytail rules and reuse existing Tailwind primitives.
 
 ## OpenSpec workflow
 
@@ -27,6 +30,8 @@ Use the project-local `.codex/skills/openspec-*` skills. Project context lives i
 Use the first solution that is both safe and sufficient: reuse local code, then standard library, native browser/platform capability, installed dependencies, and finally new code. Do not add a dependency or abstraction for a single use.
 
 If a deliberate shortcut has a known ceiling, add a `ponytail:` comment with the upgrade condition.
+
+For UI, Ponytail means deleting decorative layers before adding them: prefer semantic HTML, native CSS, existing Tailwind classes, and one clear hierarchy. A new component or token is justified only when the same treatment is used in at least two workflows.
 
 ## Verification
 

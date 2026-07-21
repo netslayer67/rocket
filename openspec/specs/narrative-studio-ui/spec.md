@@ -14,7 +14,7 @@ The dashboard SHALL present the V1 workflow in the order persona, knowledge patt
 - **THEN** the creator sees summary counts, clear workflow sections, and the latest review queue
 
 ### Requirement: Accessible input and feedback
-The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, and estimated progress for pending narrative-form actions.
+The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, estimated progress for pending narrative-form actions, and an anti-slop review for any materially changed UI surface.
 
 #### Scenario: Creator cannot generate yet
 - **WHEN** no persona exists
@@ -27,6 +27,10 @@ The dashboard SHALL provide visible labels for inputs, text-based status, clear 
 #### Scenario: Narrative action is pending
 - **WHEN** a creator requests a suggestion or generates a narrative
 - **THEN** the dashboard shows an accessible estimated-progress percentage until the request settles
+
+#### Scenario: Creator reviews a changed surface
+- **WHEN** a form, status panel, card, or navigation surface is materially changed
+- **THEN** the change records an anti-slop, contrast, keyboard, and narrow-viewport review before acceptance
 
 ### Requirement: Manual approval remains explicit
 The dashboard SHALL show reviewer notes before a draft can be approved, SHALL disable approval for a draft with any blocking reviewer warning, SHALL evaluate current deterministic reviewer rules for previously stored drafts, and SHALL not publish to an external platform.

@@ -2,6 +2,8 @@
 
 Read [context/RULES.md](context/RULES.md) before changing code. Read the relevant context document before changing product behavior, design, architecture, operations, or data.
 
+For frontend work, read [context/AI-SLOP.md](context/AI-SLOP.md) and record its review before accepting a material UI change. Do not edit generated skill files; project-specific Ponytail guidance belongs in context and AGENTS rules.
+
 For meaningful changes, use OpenSpec: propose → apply → sync → archive. The local Codex OpenSpec skills are in `.codex/skills/`.
 
 Ponytail is active: reuse existing code and dependencies, prefer the smallest safe change, and do not add speculative abstractions.

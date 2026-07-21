@@ -4,12 +4,16 @@
 
 The dashboard should feel like a focused creator studio: calm, editorial, and deliberate. It must help a user move from persona to approved narrative without looking like an affiliate-sales tool.
 
+The anti-slop policy in [AI-SLOP.md](AI-SLOP.md) is mandatory for new UI work. The Impeccable catalog is used as a rejection checklist, not as a visual style to imitate.
+
 ## Visual direction
 
 - Dark slate canvas with one cyan accent for actions and system state.
 - Cards use thin slate borders, moderate rounding, and low-contrast surfaces.
 - Typography is compact and readable: a strong page title, muted explanatory text, and clear form labels.
 - Use Tailwind utility classes only; do not add a component library for V2.
+- Avoid generic AI visual defaults: purple gradients, cyan glows, gradient text, ubiquitous glass, nested cards, identical feature grids, oversized icon tiles, and repeated eyebrow chips.
+- Keep type, spacing, contrast, motion, and copy decisions explainable by the creator workflow. Decorative novelty is not a design rationale.
 
 ## Layout
 
@@ -41,3 +45,5 @@ On small screens each section stacks vertically. On large screens the workspace 
 ## Reusable primitives
 
 Use `SectionCard`, `Field`, `StatusBadge`, and the shared `Button` style from global CSS. Components may compose those primitives but should not become a local design system.
+
+Before accepting a material visual change, record the anti-slop, contrast, keyboard, narrow-viewport, overflow, and reduced-motion review described in [AI-SLOP.md](AI-SLOP.md).
