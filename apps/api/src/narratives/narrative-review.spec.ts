@@ -50,4 +50,18 @@ describe('narrative naturalness review', () => {
 
     expect(isNaturalnessBlocked(notes)).toBe(false);
   });
+
+  it('blocks a news-like draft with no information gap', () => {
+    const notes = reviewNarrative('Trade pemain basket musim ini', 'Pergerakan pemain besar memicu diskusi di seluruh liga.', { topic: 'Trade pemain basket musim ini' });
+
+    expect(notes.join(' ')).toContain('Information gap tidak terlihat');
+    expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
+
+  it('blocks a broad closing question without a specific tension', () => {
+    const notes = reviewNarrative('gw masih penasaran soal trade ini', 'Gw masih penasaran kenapa trade ini ramai. Menurut kamu?', { vocabulary: ['gw'] });
+
+    expect(notes.join(' ')).toContain('Pertanyaan penutup terlalu umum');
+    expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
 });

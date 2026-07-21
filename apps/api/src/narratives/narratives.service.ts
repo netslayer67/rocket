@@ -41,14 +41,14 @@ REFERENCE URL: ${reference.url ?? 'none'}
 PERSONA: ${JSON.stringify(persona)}
 REUSABLE PATTERNS: ${JSON.stringify(patterns.map(patternContext))}
 
-Rules: the title must sound like a spoken thread opening, never a news/article headline. Start the body with a short first-person observation using the persona's own first-person vocabulary when provided. Leave one specific tension or detail unresolved; do not force a broad closing question. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement.`,
+Rules: the title must sound like a spoken thread opening, never a news/article headline. Start the body with a short first-person observation using the persona's own first-person vocabulary when provided. Leave one specific tension or detail unresolved; do not force a broad closing question. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement. Treat patterns labeled 'Negative lesson' or scored naturalness 2 or lower as anti-patterns to avoid, never as writing examples.`,
       maxTokens: 1100,
       json: true,
     });
     const generated = result.mode === 'demo' ? demoNarrative(dto, persona, reference) : parseNarrative(result.content);
-    const initialNotes = reviewNarrative(generated.title, generated.body, reviewContext(persona, reference));
-    const rewritten = result.mode === 'live' ? await this.rewriteWeakDraft(generated, initialNotes, persona, reference) : { draft: generated, rewritten: false };
-    const reviewerNotes = reviewNarrative(rewritten.draft.title, rewritten.draft.body, reviewContext(persona, reference));
+    const initialNotes = reviewNarrative(generated.title, generated.body, reviewContext(dto.topic, persona, reference));
+    const rewritten = result.mode === 'live' ? await this.rewriteWeakDraft(generated, initialNotes, persona, reference, dto.topic) : { draft: generated, rewritten: false };
+    const reviewerNotes = reviewNarrative(rewritten.draft.title, rewritten.draft.body, reviewContext(dto.topic, persona, reference));
     if (rewritten.rewritten) reviewerNotes.unshift('Quality gate menemukan kelemahan; sistem membuat ulang draft sekali.');
 
     return this.narratives.create({
@@ -93,7 +93,7 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
     return narrative;
   }
 
-  private async rewriteWeakDraft(draft: GeneratedNarrative, notes: string[], persona: PersonaShape, reference: ReferenceContext) {
+  private async rewriteWeakDraft(draft: GeneratedNarrative, notes: string[], persona: PersonaShape, reference: ReferenceContext, topic: string) {
     if (!isNaturalnessBlocked(notes)) return { draft, rewritten: false };
     try {
       const result = await this.ai.complete({
@@ -102,12 +102,13 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
         prompt: `Rewrite this draft as {"title":"...","body":"...","linkPlacement":"opening|middle|ending|reply"}.
 
 PERSONA: ${JSON.stringify(persona)}
+TOPIC: ${topic}
 REFERENCE TITLE: ${reference.title ?? 'none'}
 REFERENCE URL: ${reference.url ?? 'none'}
 REVIEWER FAILURES: ${JSON.stringify(notes)}
 DRAFT: ${JSON.stringify(draft)}
 
-Fix every reviewer failure. Open with the persona's first-person voice. Make the title conversational, not journalistic. If there is a URL, name its reference context before the URL and make the connection explicit.`,
+Fix every reviewer failure. Open with the persona's first-person voice and a concrete information gap. Make the title conversational, not journalistic. If there is a URL, name its reference context before the URL and make the connection explicit.`,
         maxTokens: 900,
         json: true,
       });
@@ -148,21 +149,23 @@ function parseSuggestion(content: string) {
 }
 
 function patternContext(pattern: {
+  sourceLabel: string;
   topics: string[]; hookType: string; emotion: string; narrativeType: string; curiosityLevel: number; linkPlacement: string; patternSummary: string;
   conflict: string; persona: string; style: string; vocabulary: string[]; informationGap: string; discussionPattern: string; authorityType: string; ctaStyle: string; naturalness: number;
 }) {
-  const { topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness } = pattern;
-  return { topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness };
+  const { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness } = pattern;
+  return { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness };
 }
 
 type ReferenceContext = { title?: string; url?: string; description: string };
 
-function reviewContext(persona: PersonaShape, reference: ReferenceContext) {
-  return { vocabulary: persona.vocabulary, referenceTitle: reference.title, referenceUrl: reference.url };
+function reviewContext(topic: string, persona: PersonaShape, reference: ReferenceContext) {
+  return { topic, vocabulary: persona.vocabulary, referenceTitle: reference.title, referenceUrl: reference.url };
 }
 
-function currentReviewerNotes(narrative: Pick<Narrative, 'title' | 'body' | 'referenceTitle' | 'referenceUrl' | 'reviewerNotes'>) {
+function currentReviewerNotes(narrative: Pick<Narrative, 'topic' | 'title' | 'body' | 'referenceTitle' | 'referenceUrl' | 'reviewerNotes'>) {
   return [...new Set([...(narrative.reviewerNotes ?? []), ...reviewNarrative(narrative.title, narrative.body, {
+    topic: narrative.topic,
     referenceTitle: narrative.referenceTitle,
     referenceUrl: narrative.referenceUrl,
   })])];

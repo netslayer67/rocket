@@ -15,8 +15,10 @@ const patterns: Array<[string, RegExp]> = [
 const sceneConflicts: Array<[string, RegExp, RegExp]> = [
   ['layangan dan lantai', /\blayangan\b/iu, /\b(?:di\s+atas\s+)?lantai\b/iu],
 ];
+const informationGap = /\b(?:penasaran|heran|kok|kenapa|ternyata|padahal|awalnya|lucunya|aneh(?:nya)?|(?:baru|masih)\s+(?:sadar|kepikiran)|(?:gak|nggak)\s+nyangka|belum\s+ngerti)\b/iu;
+const broadClosingQuestion = /\b(?:menurut\s+(?:kamu|kalian|lo|lu)|apa\s+pendapat(?:mu|kamu)?|setuju\s*(?:nggak|gak|ga)?)\s*\?$/iu;
 
-export type NarrativeReviewContext = { referenceTitle?: string; referenceUrl?: string; vocabulary?: string[] };
+export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[] };
 
 export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Start from a concrete observation, small experience, tension, or unexpected detail instead.`;
 
@@ -34,11 +36,13 @@ export function isNaturalnessBlocked(notes: string[]) {
 
 export function reviewNarrative(title: string, body: string, context: NarrativeReviewContext = {}) {
   const notes: string[] = [];
-  const { referenceTitle, referenceUrl, vocabulary = [] } = context;
+  const { topic, referenceTitle, referenceUrl, vocabulary = [] } = context;
   if (referenceUrl && !body.includes(referenceUrl)) notes.push(block('Link referensi belum muncul di naskah.'));
   if (!hasHumanVoice(opening(body))) notes.push(block('Human voice tidak terlihat; mulai dari observasi orang pertama.'));
   if (missingPersonaVoice(body, vocabulary)) notes.push(block('Kosakata orang pertama persona tidak muncul di naskah.'));
   if (looksLikeArticleHeadline(title)) notes.push(block('Hook terasa seperti judul artikel; mulai dengan suara percakapan.'));
+  if (!hasInformationGap(body)) notes.push(block(`Information gap tidak terlihat${topic ? ` untuk topik ${topic}` : ''}; sisakan detail atau kegelisahan yang membuat orang ingin lanjut.`));
+  if (hasBroadClosingQuestion(body)) notes.push(block('Pertanyaan penutup terlalu umum; ajukan detail yang bisa diperdebatkan, bukan sekadar meminta pendapat.'));
   if (referenceUrl && body.includes(referenceUrl) && !hasReferenceBridge(body, referenceTitle, referenceUrl)) {
     notes.push(block('Link tidak memiliki jembatan konteks ke judul referensi.'));
   }
@@ -68,6 +72,15 @@ function opening(body: string) {
 function missingPersonaVoice(body: string, vocabulary: string[]) {
   const voice = vocabulary.map((word) => word.toLowerCase()).find((word) => /^(gw|gue|aku|saya)$/.test(word));
   return Boolean(voice && !new RegExp(`\\b${voice}\\b`, 'iu').test(body));
+}
+
+function hasInformationGap(body: string) {
+  return informationGap.test(body);
+}
+
+function hasBroadClosingQuestion(body: string) {
+  const closing = body.trim().split(/\n\s*\n/u).at(-1) ?? body.trim();
+  return broadClosingQuestion.test(closing);
 }
 
 function looksLikeArticleHeadline(title: string) {
