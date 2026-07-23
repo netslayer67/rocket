@@ -6,6 +6,8 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
 import { NarrativesModule } from './narratives/narratives.module';
 import { PersonasModule } from './personas/personas.module';
 import { ThreadsModule } from './threads/threads.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { ThreadsModule } from './threads/threads.module';
     KnowledgeModule,
     NarrativesModule,
     ThreadsModule,
+    FeedbackModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

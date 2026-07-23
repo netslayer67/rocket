@@ -14,6 +14,9 @@ export function PersonaForm({ personas, busy, onCreate }: { personas: Persona[];
       sentenceLength: String(values.get('sentenceLength')) as Persona['sentenceLength'],
       emojiHabit: optional(values.get('emojiHabit')),
       interactionStyle: optional(values.get('interactionStyle')),
+      thinkingStyle: optional(values.get('thinkingStyle')),
+      observationStyle: optional(values.get('observationStyle')),
+      reasoningPatterns: String(values.get('reasoningPatterns') ?? '').split(',').map((item) => item.trim()).filter(Boolean),
     });
     if (saved) form.reset();
   }
@@ -31,6 +34,9 @@ export function PersonaForm({ personas, busy, onCreate }: { personas: Persona[];
           <Field label="Kebiasaan emoji"><input name="emojiHabit" placeholder="Mis. ☕ (opsional)" /></Field>
         </div>
         <Field label="Gaya interaksi" hint="Contoh: memberi konteks dulu, lalu membuka ruang diskusi."><input name="interactionStyle" placeholder="Santai dan observatif" /></Field>
+        <Field label="Cara berpikir" hint="Bukan daftar kata; tulis kebiasaan menimbang sesuatu."><textarea name="thinkingStyle" rows={2} placeholder="Mulai dari detail kecil, ragu sebelum menyimpulkan" /></Field>
+        <Field label="Cara mengamati" hint="Hal konkret yang biasanya diperhatikan."><textarea name="observationStyle" rows={2} placeholder="Kejadian harian, gestur, perubahan kecil" /></Field>
+        <Field label="Pola penalaran (opsional)" hint="Pisahkan dengan koma; tidak wajib mengikuti urutan tertentu."><input name="reasoningPatterns" placeholder="observasi, pertanyaan, refleksi" /></Field>
         <button className="button mt-1" disabled={busy}>{busy ? 'Menyimpan suara...' : 'Simpan suara'}</button>
       </form>
       {personas.length > 0 && <div className="mt-5 border-t border-slate-800 pt-4"><p className="text-xs font-medium text-slate-500">Persona tersimpan</p><ul className="mt-2 grid gap-2 text-sm text-slate-300">{personas.map((persona) => <li key={persona._id}>{persona.name}<span className="text-slate-500"> · {persona.tone}</span></li>)}</ul></div>}

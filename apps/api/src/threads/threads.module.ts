@@ -8,5 +8,6 @@ import { ThreadsService } from './threads.service';
   imports: [MongooseModule.forFeature([{ name: ThreadsConnection.name, schema: ThreadsConnectionSchema }])],
   controllers: [ThreadsController],
   providers: [ThreadsService],
+  exports: [ThreadsService],
 })
 export class ThreadsModule {}

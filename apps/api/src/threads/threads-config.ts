@@ -15,7 +15,7 @@ export function readThreadsConfig(config: ConfigService): ThreadsConfig {
   const redirectUri = required(config, 'THREADS_REDIRECT_URI');
   const encryptionKey = Buffer.from(required(config, 'THREADS_TOKEN_ENCRYPTION_KEY'), 'base64');
   if (encryptionKey.length !== 32) throw new ServiceUnavailableException('THREADS_TOKEN_ENCRYPTION_KEY must be a base64 32-byte key');
-  const scopes = (config.get<string>('THREADS_OAUTH_SCOPES', 'threads_basic') ?? 'threads_basic').split(',').map((scope) => scope.trim()).filter(Boolean);
+  const scopes = (config.get<string>('THREADS_OAUTH_SCOPES', 'threads_basic,threads_content_publish') ?? 'threads_basic,threads_content_publish').split(',').map((scope) => scope.trim()).filter(Boolean);
   return { appId, appSecret, redirectUri, scopes, encryptionKey };
 }
 

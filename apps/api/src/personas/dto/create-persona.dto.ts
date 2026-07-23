@@ -25,4 +25,19 @@ export class CreatePersonaDto {
   @IsString()
   @MaxLength(160)
   interactionStyle?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  thinkingStyle?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  observationStyle?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  reasoningPatterns?: string[];
 }

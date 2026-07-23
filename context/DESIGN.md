@@ -25,6 +25,8 @@ Workspace: create persona | import knowledge
 Generator: topic + persona + reference
 Knowledge Library: extracted pattern + semantic index status + reindex
 Review queue: draft cards + manual approval
+Feedback: dimension scores + explicit learning approval
+Signals: manual metrics + learning run
 ```
 
 On small screens each section stacks vertically. On large screens the workspace is two columns and generator/review use the full width.
@@ -40,6 +42,7 @@ On small screens each section stacks vertically. On large screens the workspace 
 - Semantic status is text-based (`Semantic ready` or `Index pending`) and does not rely only on color.
 - Status never relies on color alone; it is rendered as text.
 - Threads connection describes its status and token expiry in text and keeps unavailable actions hidden.
+- Publish is a separate labeled action after approval; feedback and metrics use native disclosure/forms to keep the review card readable.
 - Public crawling is intentionally absent from the dashboard in V1; its manual command documentation is the approval boundary.
 
 ## Reusable primitives

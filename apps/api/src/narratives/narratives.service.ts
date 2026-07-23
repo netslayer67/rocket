@@ -10,9 +10,12 @@ import { SuggestNarrativeDto } from './dto/suggest-narrative.dto';
 import { isNaturalnessBlocked, naturalnessInstruction, reviewNarrative } from './narrative-review';
 import { fetchReferencePreview } from './reference-preview';
 import { Narrative } from './schemas/narrative.schema';
+import { ThreadsService } from '../threads/threads.service';
+import { Optional } from '@nestjs/common';
+import { demoSuggestion, parseSuggestion, patternContext } from './narrative-parsers';
 
 type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>;
-type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'>;
+type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'> & Partial<Pick<Persona, 'thinkingStyle' | 'observationStyle' | 'reasoningPatterns'>>;
 export type NarrativeProgress = (stage: 'generating' | 'reviewing' | 'saved', progress: number, message: string) => void;
 
 @Injectable()
@@ -22,6 +25,7 @@ export class NarrativesService {
     private readonly personas: PersonasService,
     private readonly knowledge: KnowledgeService,
     private readonly ai: AiOrchestratorService,
+    @Optional() private readonly threads?: ThreadsService,
   ) {}
 
   async generate(dto: GenerateNarrativeDto, onProgress?: NarrativeProgress) {
@@ -41,6 +45,8 @@ REFERENCE TITLE: ${reference.title ?? 'none'}
 REFERENCE DESCRIPTION: ${reference.description || 'none'}
 REFERENCE URL: ${reference.url ?? 'none'}
 PERSONA: ${JSON.stringify(persona)}
+THINKING STYLE: ${persona.thinkingStyle || 'optional; infer from the scene, never imitate keywords'}
+OBSERVATION STYLE: ${persona.observationStyle || 'concrete everyday details'}
 REUSABLE PATTERNS: ${JSON.stringify(patterns.map(patternContext))}
 
 Rules: the title must sound like a spoken thread opening, never a news/article headline. Start with a concrete first-person observation or another fitting human opening. Show a small uncertainty, story beat, question, or process of thought before concluding, but never force one sequence. Leave one specific tension or detail unresolved; do not force a broad closing question. Branch through real human concerns such as heat, guests, timing, discomfort, or a small worry before a reference appears; never take the shortest path from topic to product. Persona should guide the narrator's thinking, not force repeated vocabulary. Preferred shapes include Observe -> Wonder -> Hypothesis -> Reference -> Open Question, Question -> Discussion -> Reference, Experience -> Reflection -> Reference, and Fact -> Story -> Reference -> Humor; choose the one that fits. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write marketplace listing language or unsupported garment specifications as fact. Use reference metadata only for clearly hedged inferences, never as invented firsthand experience. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement. Treat negative lessons or naturalness 2 or lower as diagnosed anti-patterns to avoid; treat positive lessons or naturalness 4 or higher as optional structural guidance and never copy their wording.`,
@@ -98,6 +104,20 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
     return narrative;
   }
 
+  async publish(id: string) {
+    if (!this.threads) throw new BadRequestException('Threads publishing is not configured.');
+    const current = await this.narratives.findById(id).lean();
+    if (!current) throw new NotFoundException('Narrative tidak ditemukan');
+    if (current.status !== 'approved' || isNaturalnessBlocked(currentReviewerNotes(current))) {
+      throw new BadRequestException('Publish hanya tersedia untuk draft yang sudah disetujui.');
+    }
+    if (current.publishedThreadId) return current;
+    const published = await this.threads.publishText(current.body);
+    const narrative = await this.narratives.findByIdAndUpdate(id, { publishedThreadId: published.threadId, publishedAt: new Date() }, { new: true }).lean();
+    if (!narrative) throw new NotFoundException('Narrative tidak ditemukan');
+    return narrative;
+  }
+
   private async rewriteWeakDraft(draft: GeneratedNarrative, notes: string[], persona: PersonaShape, reference: ReferenceContext, topic: string) {
     if (!isNaturalnessBlocked(notes)) return { draft, rewritten: false };
     try {
@@ -107,6 +127,8 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
         prompt: `Rewrite this draft as {"title":"...","body":"...","linkPlacement":"opening|middle|ending|reply"}.
 
 PERSONA: ${JSON.stringify(persona)}
+THINKING STYLE: ${persona.thinkingStyle || 'optional'}
+OBSERVATION STYLE: ${persona.observationStyle || 'concrete everyday details'}
 TOPIC: ${topic}
 REFERENCE TITLE: ${reference.title ?? 'none'}
 REFERENCE URL: ${reference.url ?? 'none'}
@@ -146,22 +168,6 @@ function parseNarrative(content: string): GeneratedNarrative {
   };
 }
 
-function parseSuggestion(content: string) {
-  const value = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, '')) as { topic?: unknown };
-  const topic = String(value.topic ?? '').trim();
-  if (!topic) throw new Error('Reference suggestion is incomplete');
-  return topic.slice(0, 180);
-}
-
-function patternContext(pattern: {
-  sourceLabel: string;
-  topics: string[]; hookType: string; emotion: string; narrativeType: string; curiosityLevel: number; linkPlacement: string; patternSummary: string;
-  conflict: string; persona: string; style: string; vocabulary: string[]; informationGap: string; discussionPattern: string; authorityType: string; ctaStyle: string; naturalness: number; lessonType?: string; diagnosis?: string; rootCause?: string; recommendedFix?: string; failureDimensions?: string[]; evidenceSources?: string[];
-}) {
-  const { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness, lessonType, diagnosis, rootCause, recommendedFix, failureDimensions, evidenceSources } = pattern;
-  return { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness, lessonType, diagnosis, rootCause, recommendedFix, failureDimensions, evidenceSources };
-}
-
 type ReferenceContext = { title?: string; url?: string; description: string };
 
 function reviewContext(topic: string, persona: PersonaShape, reference: ReferenceContext) {
@@ -184,8 +190,4 @@ export function demoNarrative(dto: GenerateNarrativeDto, persona: PersonaShape, 
     body: `${narrator} baru kepikiran ${dto.topic} dari detail yang kelihatannya kecil. Ada bagian yang bikin ${narrator} belum sepakat sama cara orang biasanya membahasnya.\n\nYang pengin ${narrator} gali justru alasan di balik detail itu, karena dari situ obrolannya bisa jadi lebih jujur.${link}`,
     linkPlacement: 'ending',
   };
-}
-
-function demoSuggestion(referenceTitle: string) {
-  return `Hal kecil yang bikin orang melihat ${referenceTitle} dari sudut lain`;
 }

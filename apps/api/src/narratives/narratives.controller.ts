@@ -35,4 +35,9 @@ export class NarrativesController {
   approve(@Param('id') id: string) {
     return this.narratives.approve(id);
   }
+
+  @Post(':id/publish')
+  publish(@Param('id') id: string) {
+    return this.narratives.publish(id);
+  }
 }

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import { ThreadsConnection } from './schemas/threads-connection.schema';
 import { ThreadsService } from './threads.service';
+import { encryptToken } from './threads-crypto';
 
 describe('ThreadsService', () => {
   it('does not start OAuth when required configuration is absent', () => {
@@ -34,6 +35,18 @@ describe('ThreadsService', () => {
   it('reports connection status without encrypted token fields', async () => {
     const service = new ThreadsService(config(), model({ accountId: 'thread-user', expiresAt: new Date('2030-01-01') }));
     await expect(service.status()).resolves.toEqual({ configured: true, connected: true, accountId: 'thread-user', expiresAt: new Date('2030-01-01') });
+  });
+
+  it('publishes only through the two-step text API', async () => {
+    const encrypted = encryptToken('thread-token', Buffer.alloc(32, 1));
+    const connections = {
+      findOne: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue({ ...encrypted, expiresAt: new Date('2030-01-01') }) }) }),
+    };
+    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({ id: 'container-1' }), { status: 200 })).mockResolvedValueOnce(new Response(JSON.stringify({ id: 'thread-1' }), { status: 200 }));
+    await expect(new ThreadsService(config(), connections as never).publishText('hello')).resolves.toEqual({ threadId: 'thread-1' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toContain('/me/threads');
+    fetchMock.mockRestore();
   });
 });
 

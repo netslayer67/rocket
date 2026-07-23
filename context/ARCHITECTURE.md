@@ -1,6 +1,6 @@
 # Architecture
 
-## Current boundary: V2 Knowledge Engine with Threads connection
+## Current boundary: V1 completion with V2 Knowledge Engine
 
 Rocket Project is a monorepo with a Next.js dashboard and a NestJS API. V2 adds semantic pattern retrieval to the V1 persona, narrative, logging, and manual-approval flow. It does not publish content automatically.
 
@@ -8,7 +8,7 @@ Rocket Project is a monorepo with a Next.js dashboard and a NestJS API. V2 adds 
 Next.js dashboard
         │ HTTP
         ▼
-NestJS API ──► MongoDB (pattern metadata)
+NestJS API ──► MongoDB (pattern, feedback, analytics metadata)
         │                  ▲
         ▼                  │
 AI Orchestrator ──► OpenRouter embeddings
@@ -18,7 +18,7 @@ Qdrant (semantic vector index)
 
 Next.js dashboard ◄── SSE narrative job events ── NestJS API
 
-NestJS API ──► Threads OAuth (connection only)
+NestJS API ──► Threads OAuth + approved text publish
 
 Scrapy CLI ──► NestJS API (manual transient import)
 Nutch CLI ──► candidate URLs only (manual operator review)
@@ -47,9 +47,11 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 7. Generation runs as an in-process job. The API returns a job ID, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft.
 8. Deterministic checks flag missing contextual references, promotional phrasing, generic AI patterns, article-style hooks, absent persona voice, and observed incompatible concrete scenes; one live rewrite is bounded through the orchestrator.
 9. The user reviews and approves the draft before copying it to a platform.
-10. A creator can optionally connect one Threads account through Meta OAuth; this only prepares a future manual publisher.
-11. An operator can manually crawl a creator-selected public URL with Scrapy; its transient text enters the existing knowledge-import flow.
-12. An operator can manually run Nutch to discover bounded same-domain URLs, then individually choose a URL for Scrapy import.
+10. A creator can connect one Threads account through Meta OAuth; only an approved draft can invoke the explicit text publisher.
+11. An operator can record structured feedback; approved feedback becomes diagnosis-first knowledge and can be rerun safely.
+12. An operator can enter observed metrics to derive CTR and engagement; an opt-in daily timer processes pending learning only.
+13. An operator can manually crawl a creator-selected public URL with Scrapy; its transient text enters the existing knowledge-import flow.
+14. An operator can manually run Nutch to discover bounded same-domain URLs, then individually choose a URL for Scrapy import.
 
 ## Invariants
 
@@ -57,13 +59,14 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 - A link is a reference, not a hard-selling CTA.
 - Imported source text is transient; only pattern metadata is stored.
 - Reference-preview HTML is transient; only creator-selected narrative fields are stored.
-- A narrative stays `draft` until a person approves it.
+- A narrative stays `draft` until a person approves it; publishing is a separate explicit action.
 - The SSE `complete` event is emitted only after the draft is persisted; job state is in-process and bounded.
 - AI model, caching, and token usage are logged in `AiRun`.
 - A failed semantic index marks a record `pending`; it never blocks metadata import.
 - Threads email, password, and plaintext access tokens are never persisted or returned by the API.
+- Feedback must be explicitly approved for learning; a learning run never publishes content.
 - Crawler pages obey robots.txt, stay bounded to a public seed domain, and never persist raw fetched text or Nutch artifacts.
 
 ## Deferred architecture
 
-BullMQ/Redis, durable multi-instance job recovery, analytics ingestion, publisher integrations, replies, token refresh jobs, and trend analysis belong to V3–V5. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.
+BullMQ/Redis, durable multi-instance job recovery, platform analytics ingestion, replies, token refresh jobs, and trend analysis belong to V2–V5. V1 analytics are manual capture and its learning timer is single-process only. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.

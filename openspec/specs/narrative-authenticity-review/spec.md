@@ -7,7 +7,7 @@ Keep references inside a believable human thought process instead of using a nar
 ## Requirements
 
 ### Requirement: Reference enters through human reasoning
-The reviewer SHALL detect a reference that is introduced through an abrupt marketplace transition instead of an observable concern or thought process. Persona vocabulary SHALL be evaluated with its surrounding scene and reasoning, never as a standalone forbidden-word list. Product details SHALL be evaluated against available evidence provenance, not a firsthand-only rule.
+The reviewer SHALL detect a reference that is introduced through an abrupt marketplace transition instead of an observable concern or thought process. Persona vocabulary SHALL be evaluated with its surrounding scene, thinking style, and reasoning, never as a standalone forbidden-word list. Product details SHALL be evaluated against available evidence provenance, not a firsthand-only rule. Feedback dimensions SHALL be available for later diagnosis but SHALL NOT make one reasoning sequence mandatory.
 
 #### Scenario: Product is injected
 - **WHEN** a draft uses marketplace language or a shopping transition to introduce its reference without a prior human concern
@@ -18,7 +18,7 @@ The reviewer SHALL detect a reference that is introduced through an abrupt marke
 - **THEN** the reviewer does not block it for product injection
 
 #### Scenario: Persona vocabulary has no earned context
-- **WHEN** a first-person draft uses persona-style vocabulary without a concrete observation, scene, or reasoning cue that supports the term
+- **WHEN** a first-person draft uses persona-style vocabulary without a concrete observation, scene, thinking style, or reasoning cue that supports the term
 - **THEN** the reviewer records a blocking persona-diagnosis warning
 
 #### Scenario: Ordinary vocabulary has earned context

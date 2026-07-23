@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { randomUUID } from 'node:crypto';
 import { Model } from 'mongoose';
 import { ThreadsConnection } from './schemas/threads-connection.schema';
-import { encryptToken } from './threads-crypto';
+import { decryptToken, encryptToken } from './threads-crypto';
 import { isThreadsConfigured, readThreadsConfig } from './threads-config';
 import { exchangeAuthorizationCode, exchangeLongLivedToken } from './threads-oauth';
 
@@ -53,7 +53,30 @@ export class ThreadsService {
     return { disconnected: true };
   }
 
+  async publishText(text: string) {
+    if (!text.trim() || text.length > 500) throw new BadRequestException('V1 hanya mempublish satu teks Threads hingga 500 karakter.');
+    const config = readThreadsConfig(this.config);
+    const connection = await this.connections.findOne({ key: CONNECTION_KEY }).select('+tokenCiphertext +tokenIv +tokenTag').lean();
+    if (!connection || connection.expiresAt.getTime() <= Date.now()) throw new BadRequestException('Threads connection expired. Reconnect before publishing.');
+    const token = decryptToken(connection, config.encryptionKey);
+    const container = await threadsRequest('me/threads', token, { media_type: 'TEXT', text });
+    const published = await threadsRequest('me/threads_publish', token, { creation_id: String(container.id) });
+    return { threadId: String(published.id) };
+  }
+
   private validState(state: string, cookieState: string | undefined) {
     return Boolean(cookieState && state === cookieState);
   }
+}
+
+async function threadsRequest(path: string, token: string, body: Record<string, string>) {
+  const response = await fetch(`https://graph.threads.net/${path}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(body),
+  });
+  if (!response.ok) throw new BadRequestException(`Threads publish failed: ${await response.text()}`);
+  const result = (await response.json()) as { id?: string };
+  if (!result.id) throw new BadRequestException('Threads returned no publication id.');
+  return result;
 }

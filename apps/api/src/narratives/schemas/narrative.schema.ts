@@ -31,6 +31,12 @@ export class Narrative {
 
   @Prop({ enum: ['draft', 'approved'], default: 'draft' })
   status!: 'draft' | 'approved';
+
+  @Prop()
+  publishedThreadId?: string;
+
+  @Prop()
+  publishedAt?: Date;
 }
 
 export const NarrativeSchema = SchemaFactory.createForClass(Narrative);

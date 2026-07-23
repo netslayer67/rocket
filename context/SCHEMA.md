@@ -4,11 +4,14 @@ MongoDB is the V2 source of truth. Mongoose schemas define the runtime shape; Qd
 
 | Collection | Important fields | Purpose |
 | --- | --- | --- |
-| `personas` | `name`, `tone`, `vocabulary`, `sentenceLength`, `emojiHabit`, `interactionStyle` | Defines a consistent creator voice. |
+| `personas` | `name`, `tone`, `vocabulary`, `sentenceLength`, `emojiHabit`, `interactionStyle`, optional `thinkingStyle`, `observationStyle`, `reasoningPatterns` | Defines a consistent creator voice and reasoning guidance. |
 | `knowledge` | V1 fields plus `conflict`, `persona`, `style`, `vocabulary`, `informationGap`, `discussionPattern`, `authorityType`, `ctaStyle`, `naturalness`, optional `lessonType`, `diagnosis`, `rootCause`, `recommendedFix`, `failureDimensions`, `evidenceSources`, `vectorStatus`, `embeddingModel` | Stores diagnosis-rich narrative DNA, never raw source text. |
-| `narratives` | `topic`, `personaId`, `referenceTitle`, `referenceUrl`, `title`, `body`, `linkPlacement`, `reviewerNotes`, `status` | Stores reviewable output. `status` is `draft` or `approved`. |
+| `narratives` | `topic`, `personaId`, `referenceTitle`, `referenceUrl`, `title`, `body`, `linkPlacement`, `reviewerNotes`, `status`, optional `publishedThreadId`, `publishedAt` | Stores reviewable output and manual publication result. |
 | `airuns` | `task`, `model`, `inputHash`, `cached`, `demo`, `inputTokens`, `outputTokens` | Records AI routing and usage decisions. |
 | `threadsconnections` | `key`, `accountId`, encrypted token fields, `expiresAt`, `connectedAt` | Stores one OAuth connection; no email, password, or plaintext token. |
+| `feedback` | `narrativeId`, `lessonType`, bounded `scores`, `notes`, `approvedForLearning`, optional `learnedAt`, `knowledgeId` | Stores structured reviewer diagnosis, never imported source text. |
+| `learninglogs` | `feedbackId`, `knowledgeId`, `status`, `error` | Makes feedback learning idempotent and observable. |
+| `analytics` | `narrativeId`, metric counters, derived `ctr`, `engagementRate`, `capturedAt` | Stores manually captured outcome signals. |
 
 ## Relationships
 

@@ -8,12 +8,14 @@ import { NarrativesService } from './narratives.service';
 import { Narrative, NarrativeSchema } from './schemas/narrative.schema';
 import { NarrativeJobRunner } from './narrative-job.runner';
 import { NarrativeJobService } from './narrative-job.service';
+import { ThreadsModule } from '../threads/threads.module';
 
 @Module({
   imports: [
     AiModule,
     KnowledgeModule,
     PersonasModule,
+    ThreadsModule,
     MongooseModule.forFeature([{ name: Narrative.name, schema: NarrativeSchema }]),
   ],
   controllers: [NarrativesController],

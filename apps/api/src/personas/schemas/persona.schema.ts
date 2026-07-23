@@ -22,6 +22,15 @@ export class Persona {
 
   @Prop({ default: '' })
   interactionStyle!: string;
+
+  @Prop({ default: '' })
+  thinkingStyle!: string;
+
+  @Prop({ default: '' })
+  observationStyle!: string;
+
+  @Prop({ type: [String], default: [] })
+  reasoningPatterns!: string[];
 }
 
 export const PersonaSchema = SchemaFactory.createForClass(Persona);

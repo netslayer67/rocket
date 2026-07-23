@@ -16,9 +16,9 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   return <label className="grid gap-1.5"><span className="text-sm font-medium text-slate-200">{label}</span>{children}{hint && <span className="text-xs text-slate-500">{hint}</span>}</label>;
 }
 
-export function StatusBadge({ status }: { status: 'draft' | 'approved' }) {
-  const color = status === 'approved' ? 'bg-emerald-400/10 text-emerald-200 ring-emerald-400/20' : 'bg-amber-400/10 text-amber-200 ring-amber-400/20';
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${color}`}>{status === 'approved' ? 'Disetujui' : 'Draft'}</span>;
+export function StatusBadge({ status }: { status: 'draft' | 'approved' | 'published' }) {
+  const color = status === 'published' ? 'bg-cyan-400/10 text-cyan-100 ring-cyan-400/20' : status === 'approved' ? 'bg-emerald-400/10 text-emerald-200 ring-emerald-400/20' : 'bg-amber-400/10 text-amber-200 ring-amber-400/20';
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${color}`}>{status === 'published' ? 'Dipublish' : status === 'approved' ? 'Disetujui' : 'Draft'}</span>;
 }
 
 export function VectorBadge({ status }: { status: 'pending' | 'ready' }) {

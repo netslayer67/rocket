@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, startNarrativeJob, watchNarrativeJob } from '@/lib/api';
-import type { Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeProgress, NarrativeSuggestion, Persona, PersonaInput, ThreadsStatus } from '@/lib/types';
+import type { AnalyticsInput, AnalyticsSummary, FeedbackInput, Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeProgress, NarrativeSuggestion, Persona, PersonaInput, ThreadsStatus } from '@/lib/types';
 
 export function useStudio() {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [knowledge, setKnowledge] = useState<Knowledge[]>([]);
   const [narratives, setNarratives] = useState<Narrative[]>([]);
   const [threads, setThreads] = useState<ThreadsStatus>({ configured: false, connected: false });
+  const [analytics, setAnalytics] = useState<AnalyticsSummary>({ source: 'manual capture', records: 0, views: 0, clicks: 0, likes: 0, replies: 0, reposts: 0, quotes: 0, ctr: null, engagementRate: null });
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const refreshSequence = useRef(0);
@@ -14,17 +15,19 @@ export function useStudio() {
   const refresh = useCallback(async () => {
     const sequence = ++refreshSequence.current;
     try {
-      const [nextPersonas, nextKnowledge, nextNarratives, nextThreads] = await Promise.all([
+      const [nextPersonas, nextKnowledge, nextNarratives, nextThreads, nextAnalytics] = await Promise.all([
         api<Persona[]>('/personas'),
         api<Knowledge[]>('/knowledge'),
         api<Narrative[]>('/narratives'),
         api<ThreadsStatus>('/threads/status'),
+        api<AnalyticsSummary>('/analytics/summary'),
       ]);
       if (sequence !== refreshSequence.current) return;
       setPersonas(nextPersonas);
       setKnowledge(nextKnowledge);
       setNarratives(nextNarratives);
       setThreads(nextThreads);
+      setAnalytics(nextAnalytics);
     } catch {
       if (sequence === refreshSequence.current) setMessage('API belum terhubung. Jalankan MongoDB dan API terlebih dahulu.');
     }
@@ -94,6 +97,7 @@ export function useStudio() {
     knowledge,
     narratives,
     threads,
+    analytics,
     message,
     busy,
     refresh,
@@ -103,6 +107,10 @@ export function useStudio() {
     generate,
     suggestNarrative,
     approve: (id: string) => run(() => api(`/narratives/${id}/approve`, { method: 'PATCH' }), 'Draft disetujui untuk publish manual.'),
+    publish: (id: string) => run(() => api(`/narratives/${id}/publish`, { method: 'POST' }), 'Draft dipublish ke Threads.'),
+    submitFeedback: (input: FeedbackInput) => run(() => api('/feedback', { method: 'POST', body: JSON.stringify(input) }), 'Feedback tersimpan; DNA diperbarui bila diizinkan.'),
+    captureAnalytics: (input: AnalyticsInput) => run(() => api('/analytics', { method: 'POST', body: JSON.stringify(input) }), 'Metrik tersimpan.'),
+    runLearning: () => run(() => api('/learning/run', { method: 'POST' }), 'Learning run selesai.'),
     disconnectThreads: () => run(() => api('/threads/connection', { method: 'DELETE' }), 'Akun Threads diputus dari Rocket Project.'),
   };
 }

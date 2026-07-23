@@ -7,6 +7,7 @@ import { NarrativeQueue } from '@/components/studio/narrative-queue';
 import { Overview } from '@/components/studio/overview';
 import { PersonaForm } from '@/components/studio/persona-form';
 import { ThreadsConnection } from '@/components/studio/threads-connection';
+import { AnalyticsPanel } from '@/components/studio/analytics-panel';
 import { useStudio } from '@/hooks/use-studio';
 
 export default function Home() {
@@ -37,7 +38,8 @@ export default function Home() {
         <div className="mb-4 max-w-2xl"><h2 id="draft-title" className="text-xl font-semibold tracking-tight text-white">Tulis draft</h2><p className="mt-1 text-sm leading-6 text-slate-400">Mulai dari topik atau fenomena. Link hanya dipakai jika benar-benar membantu konteks.</p></div>
         <NarrativeForm personas={studio.personas} busy={studio.busy} onGenerate={studio.generate} onSuggest={studio.suggestNarrative} />
       </section>
-      <NarrativeQueue narratives={studio.narratives} busy={studio.busy} onApprove={studio.approve} />
+      <NarrativeQueue narratives={studio.narratives} busy={studio.busy} onApprove={studio.approve} onPublish={studio.publish} onFeedback={studio.submitFeedback} />
+      <AnalyticsPanel summary={studio.analytics} narratives={studio.narratives} busy={studio.busy} onCapture={studio.captureAnalytics} onRunLearning={studio.runLearning} />
     </main>
   );
 }

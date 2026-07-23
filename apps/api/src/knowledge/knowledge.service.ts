@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AiOrchestratorService } from '../ai/ai-orchestrator.service';
 import { ImportKnowledgeDto } from './dto/import-knowledge.dto';
-import { demoPattern, keywords, parsePattern } from './knowledge-pattern';
+import { demoPattern, keywords, parsePattern, type KnowledgePattern } from './knowledge-pattern';
 import { Knowledge } from './schemas/knowledge.schema';
 import { VectorIndexService } from './vector-index.service';
 
@@ -36,6 +36,17 @@ SOURCE:\n${dto.content}`,
 
   findAll() {
     return this.knowledge.find().sort({ createdAt: -1 }).limit(30).lean();
+  }
+
+  async createLesson(input: { sourceLabel: string; sourceUrl?: string } & KnowledgePattern) {
+    const existing = await this.knowledge.findOne({ sourceLabel: input.sourceLabel });
+    if (existing) return existing;
+    const record = await this.knowledge.create(input);
+    const indexed = await this.vectors.index(record);
+    record.vectorStatus = indexed.status;
+    record.embeddingModel = indexed.embeddingModel;
+    await record.save();
+    return record;
   }
 
   async reindex() {

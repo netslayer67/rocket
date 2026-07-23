@@ -21,16 +21,19 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 5. Users can work without an OpenRouter key through a clearly local demo response.
 6. Users can inspect a library of extracted narrative patterns and their semantic-index state.
 7. The system uses semantic retrieval when Qdrant and embeddings are available, with a lexical fallback.
-8. Users can connect one Threads account with official OAuth before any future manual publishing.
+8. Users can connect one Threads account with official OAuth and publish an approved text draft through an explicit manual action.
 9. Users can fill an editable reference title and contextual topic suggestion from a public reference URL.
 10. An operator can manually import one compliant public page as pattern knowledge or use Nutch to discover candidate URLs without automatic import.
 11. A creator sees narrative-generation stages over SSE and receives the saved draft in the review queue without refreshing the page.
+12. Reviewers can submit dimension scores and, when explicitly approved, turn feedback into reusable diagnosis-first DNA.
+13. Operators can capture manual views/clicks/engagement and see derived CTR and engagement rates.
+14. An opt-in daily learning tick and a manual learning run process approved feedback without publishing.
 
 ## Functional requirements
 
 | Capability | Requirement |
 | --- | --- |
-| Persona | Store tone, vocabulary, sentence length, emoji habit, and interaction style. |
+| Persona | Store tone, vocabulary, sentence length, emoji habit, interaction style, and optional thinking/observation guidance. |
 | Knowledge | Extract hook, emotion, conflict, information gap, discussion, authority, CTA, naturalness, and pattern summary. |
 | Retrieval | Embed compact metadata, retrieve semantic matches from Qdrant, then fall back to lexical matching. |
 | Narrative | Retrieve relevant patterns and generate a JSON draft through the orchestrator. |
@@ -38,7 +41,9 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 | Reference suggestion | Read transient public-link metadata and suggest an editable, broader discussion angle without inventing claims. |
 | Review | Flag generic AI patterns, article-style hooks, missing persona voice, missing contextual link bridges, observed incompatible concrete scenes, and obvious hard-selling phrases. |
 | Approval | Keep the draft unpublished until a user marks it approved. |
-| Threads connection | Connect one account using Meta OAuth, encrypt its token, and never publish during connection. |
+| Threads publishing | Publish one approved text narrative through the official Threads API only after explicit operator action. |
+| Feedback learning | Store structured reviewer dimensions and create compact DNA only when approved for learning. |
+| Analytics | Capture manual metrics and derive CTR and engagement; label the source as manual. |
 | Crawl discovery | Crawl only a creator-approved public page with robots, domain, size, delay, and page limits; Nutch only discovers manually reviewed candidate URLs. |
 | Observability | Store model choice, cache hit, demo mode, and reported token usage. |
 
@@ -47,7 +52,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 - Automatic social-platform publishing, scraping, or crawling.
 - Automated comment replies, scheduling, or analytics ingestion.
 - Fine-tuning, multi-user auth, or billing.
-- Scheduled jobs, analytics feedback, platform publishing, and reply monitoring.
+- Durable scheduled jobs, platform analytics ingestion, and reply monitoring.
 
 ## Success signal
 

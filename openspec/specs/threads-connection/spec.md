@@ -29,11 +29,15 @@ The system SHALL persist only one connection's encrypted access token, Threads a
 - **THEN** the API returns configuration, connection, account ID, and expiry state without token material
 
 ### Requirement: Manual-publish boundary
-Connecting or disconnecting a Threads account SHALL not publish, schedule, modify, or delete any Threads content.
+Connecting or disconnecting a Threads account SHALL not publish, schedule, modify, or delete any Threads content. Publishing is allowed only through a separate explicit action for an approved narrative.
 
 #### Scenario: Creator completes connection
 - **WHEN** the OAuth callback succeeds
 - **THEN** the system stores connection metadata only and publishes no external content
+
+#### Scenario: Creator explicitly publishes approved narrative
+- **WHEN** the creator invokes the publish action for an approved narrative with a valid connection
+- **THEN** the system may publish that single text narrative and records the external publication ID
 
 ### Requirement: Header-safe OAuth callback redirect
 The system SHALL trim surrounding whitespace from the configured dashboard origin before returning an OAuth callback redirect, so both successful and failed callbacks produce a valid `Location` header.
