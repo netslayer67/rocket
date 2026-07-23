@@ -91,6 +91,8 @@ describe('NarrativesService quality gate', () => {
     await service.generate({ topic: 'Trade pemain basket', personaId: '507f1f77bcf86cd799439011' });
 
     expect(ai.complete.mock.calls[0][0].prompt).toContain('anti-patterns to avoid');
-    expect(ai.complete.mock.calls[0][0].prompt).toContain('structural guidance only');
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('optional structural guidance');
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('Question -> Discussion -> Reference');
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('never force one sequence');
   });
 });

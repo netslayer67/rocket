@@ -59,6 +59,24 @@ export class Knowledge {
   @Prop({ min: 1, max: 5, default: 3 })
   naturalness!: number;
 
+  @Prop({ enum: ['positive', 'negative'] })
+  lessonType?: 'positive' | 'negative';
+
+  @Prop({ default: '' })
+  diagnosis?: string;
+
+  @Prop({ default: '' })
+  rootCause?: string;
+
+  @Prop({ default: '' })
+  recommendedFix?: string;
+
+  @Prop({ type: [String], default: [] })
+  failureDimensions?: string[];
+
+  @Prop({ type: [String], default: [] })
+  evidenceSources?: string[];
+
   @Prop({ enum: ['pending', 'ready'], default: 'pending' })
   vectorStatus!: 'pending' | 'ready';
 

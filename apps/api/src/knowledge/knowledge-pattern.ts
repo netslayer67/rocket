@@ -3,7 +3,8 @@ import type { Knowledge } from './schemas/knowledge.schema';
 export type KnowledgePattern = Pick<
   Knowledge,
   'topics' | 'hookType' | 'emotion' | 'narrativeType' | 'curiosityLevel' | 'linkPlacement' | 'patternSummary' |
-  'conflict' | 'persona' | 'style' | 'vocabulary' | 'informationGap' | 'discussionPattern' | 'authorityType' | 'ctaStyle' | 'naturalness'
+  'conflict' | 'persona' | 'style' | 'vocabulary' | 'informationGap' | 'discussionPattern' | 'authorityType' | 'ctaStyle' | 'naturalness' |
+  'lessonType' | 'diagnosis' | 'rootCause' | 'recommendedFix' | 'failureDimensions' | 'evidenceSources'
 >;
 
 export function parsePattern(content: string): KnowledgePattern {
@@ -25,6 +26,12 @@ export function parsePattern(content: string): KnowledgePattern {
     authorityType: text(value.authorityType, 'pengalaman atau observasi'),
     ctaStyle: text(value.ctaStyle, 'referensi netral tanpa ajakan membeli'),
     naturalness: score(value.naturalness, 3),
+    lessonType: lessonType(value.lessonType),
+    diagnosis: text(value.diagnosis, ''),
+    rootCause: text(value.rootCause, ''),
+    recommendedFix: text(value.recommendedFix, ''),
+    failureDimensions: list(value.failureDimensions, 8),
+    evidenceSources: list(value.evidenceSources, 6),
   };
 }
 
@@ -39,6 +46,7 @@ export function demoPattern(content: string): KnowledgePattern {
     informationGap: 'pembaca belum melihat keputusan kecil yang mengubah hasil',
     discussionPattern: 'ajak pembaca membandingkan pengalaman tanpa memaksa kesimpulan',
     authorityType: 'observasi personal', ctaStyle: 'referensi sebagai bacaan lanjutan', naturalness: 4,
+    lessonType: 'positive', diagnosis: 'observasi kecil membuka sudut yang bisa dibahas bersama', rootCause: '', recommendedFix: 'pertahankan detail konkret dan ruang interpretasi', failureDimensions: [], evidenceSources: ['firsthand'],
   };
 }
 
@@ -52,6 +60,8 @@ export function retrievalText(pattern: KnowledgePattern) {
     `Narrative: ${pattern.narrativeType}`, `Conflict: ${pattern.conflict}`, `Information gap: ${pattern.informationGap}`,
     `Discussion: ${pattern.discussionPattern}`, `Authority: ${pattern.authorityType}`, `Style: ${pattern.style}`,
     `CTA: ${pattern.ctaStyle}`, `Summary: ${pattern.patternSummary}`,
+    `Diagnosis: ${pattern.diagnosis ?? ''}`, `Root cause: ${pattern.rootCause ?? ''}`,
+    `Recommended fix: ${pattern.recommendedFix ?? ''}`, `Failure dimensions: ${(pattern.failureDimensions ?? []).join(', ')}`,
   ].join('\n');
 }
 
@@ -61,4 +71,12 @@ function text(value: unknown, fallback: string) {
 
 function score(value: unknown, fallback: number) {
   return Math.min(5, Math.max(1, Number(value) || fallback));
+}
+
+function lessonType(value: unknown) {
+  return value === 'negative' || value === 'positive' ? value : undefined;
+}
+
+function list(value: unknown, limit: number) {
+  return Array.isArray(value) ? value.map(String).filter(Boolean).slice(0, limit) : [];
 }

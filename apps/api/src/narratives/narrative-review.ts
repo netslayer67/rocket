@@ -21,7 +21,7 @@ const sceneConflicts: Array<[string, RegExp, RegExp]> = [
   ['layangan dan lantai', /\blayangan\b/iu, /\b(?:di\s+atas\s+)?lantai\b/iu],
 ];
 const informationGap = /\b(?:penasaran|heran|kok|kenapa|ternyata|padahal|awalnya|lucunya|aneh(?:nya)?|jangan-jangan|makin\s+dipikir|belum\s+yakin|(?:baru|masih)\s+(?:sadar|kepikiran)|(?:gw|gue|aku|saya)\s+kira|(?:gak|nggak)\s+nyangka|belum\s+ngerti)\b/iu;
-const processThought = /\b(?:awalnya|(?:gw|gue|aku|saya)\s+kira|jangan-jangan|makin\s+dipikir|belum\s+yakin|baru\s+kepikiran|ternyata)\b/iu;
+const processThought = /\b(?:awalnya|(?:gw|gue|aku|saya)\s+kira|jangan-jangan|makin\s+dipikir|belum\s+yakin|baru\s+(?:ke)?pikiran|baru\s+sadar|ternyata)\b/iu;
 const broadClosingQuestion = /\b(?:menurut\s+(?:kamu|kalian|lo|lu)|apa\s+pendapat(?:mu|kamu)?|setuju\s*(?:nggak|gak|ga)?)\s*\?$/iu;
 const sceneBridge = /\b(?:mirip|analogi|ibarat|bandingkan|ngingetin|mengingatkan)\b/iu;
 const sceneGroups: Array<[string, RegExp]> = [
@@ -33,12 +33,14 @@ const marketplaceLanguage = /\b(?:premium|adem\s+di\s+kulit|bahan(?:nya)?\s+(?:t
 const shoppingTransition = /\b(?:mulai\s+cari|nemuin|nemu|langsung\s+(?:cari|kepikiran)|cari\s+cara)\b[^.!?\n]{0,100}\b(?:produk|kemeja|sepatu|koleksi|shopee)\b/iu;
 const communityTangent = /\b(?:suasana\s+komunitas|komunitas\s+yang\s+(?:hangat|penting)|bagian\s+dari\s+komunitas)\b/iu;
 const weakProductQuestion = /\b(?:apakah|bakal)\b[^?\n]{0,120}\b(?:solusi|nyaman|cocok|bagus)\b[^?\n]*\?$/iu;
-const forcedPersonaContext = /\b(?:acara\s+komunitas|pertemuan\s+kreatif|menggabungkan\s+aspek\s+kultur|kebutuhan\s+fashion\s+masa\s+kini)\b/iu;
+// ponytail: keep claim vocabulary narrow; broaden only after a reviewed miss, never into a word blacklist.
+const personaVocabulary = /\b(?:komunitas|kultur|kreatif|perspektif|ruang|proses)\b/iu;
 const unsupportedProductClaim = /\b(?:detail\s+furing|furing|siluet\s+tubuh|jatuhnya\s+kain|tetap\s+stabil|kenyamanan\s+tekstur)\b/iu;
 
-export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[] };
+export type EvidenceSource = { source: 'experience' | 'user-confirmed' | 'reference-metadata'; text?: string };
+export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[]; evidence?: EvidenceSource[] };
 
-export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Do not take the shortest path from a problem to a product: follow a real human concern first, then use a reference only when it naturally answers that concern. Persona is a reasoning style, not a keyword quota: do not insert community, culture, creative, perspective, space, or process vocabulary unless the scene earns it. Think Observe -> Wonder -> Hypothesis -> Reference -> Open Question. Never use marketplace descriptions or claim garment details such as furing, silhouette, fabric drape, or texture stability without firsthand evidence or trusted reference metadata. Do not add a new topic such as community without building it. Show a small uncertainty or process of thought before concluding.`;
+export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Do not take the shortest path from a problem to a product: follow a real human concern first, then use a reference only when it naturally answers that concern. Persona is a reasoning style, not a keyword quota: use terms such as community, culture, creative, perspective, space, or process only when the scene earns them. Preferred structures include Observe -> Wonder -> Hypothesis -> Reference -> Open Question, Question -> Discussion -> Reference, and Experience -> Reflection -> Reference; choose the shape that fits and never force one sequence. Product details need evidence: allow firsthand, user-confirmed, or trusted reference metadata, and hedge metadata-based inferences instead of presenting them as personal facts. Do not add a new topic without building it. Show a concrete observation, tension, or thought process before concluding.`;
 
 export function naturalnessIssues(text: string) {
   return patterns.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
@@ -54,7 +56,7 @@ export function isNaturalnessBlocked(notes: string[]) {
 
 export function reviewNarrative(title: string, body: string, context: NarrativeReviewContext = {}) {
   const notes: string[] = [];
-  const { topic, referenceTitle, referenceUrl, vocabulary = [] } = context;
+  const { topic, referenceTitle, referenceUrl, vocabulary = [], evidence = [] } = context;
   if (referenceUrl && !body.includes(referenceUrl)) notes.push(block('Link referensi belum muncul di naskah.'));
   if (!hasHumanVoice(opening(body))) notes.push(block('Human voice tidak terlihat; mulai dari observasi orang pertama.'));
   if (missingPersonaVoice(body, vocabulary)) notes.push(block('Kosakata orang pertama persona tidak muncul di naskah.'));
@@ -71,8 +73,8 @@ export function reviewNarrative(title: string, body: string, context: NarrativeR
   const drift = contextDrift(body);
   if (drift) notes.push(block(`Context drift terdeteksi: ${drift}.`));
   if (marketplaceLanguage.test(body)) notes.push(block('Bahasa marketplace terdeteksi; ubah deskripsi listing menjadi observasi pribadi.'));
-  if (forcedPersonaContext.test(body)) notes.push(block('Persona cosplay terdeteksi; jangan memasang istilah komunitas atau kultur tanpa pengalaman yang membangunnya.'));
-  if (unsupportedProductDetail(body)) notes.push(block('Klaim detail produk tidak punya bukti pengalaman; hapus atau ubah menjadi dugaan yang jujur.'));
+  if (personaCosplay(body)) notes.push(block('Diagnosis persona: vocabulary muncul tanpa scene, observasi, atau proses berpikir yang membangunnya.'));
+  if (unsupportedProductDetail(body, evidence)) notes.push(block('Diagnosis evidence: detail produk tidak punya sumber yang dapat ditelusuri; hapus atau ubah menjadi dugaan yang jujur.'));
   const injectionScore = productInjectionScore(body, referenceTitle, referenceUrl);
   if (injectionScore >= 60) notes.push(block(`Product Injection Score ${injectionScore}/100; cerita terasa dibuat untuk mengantar produk.`));
   const reasoningIssue = referenceReasoningIssue(body, referenceUrl);
@@ -114,7 +116,7 @@ function hasProcessThought(body: string) {
 }
 
 function hasConcreteObservation(body: string) {
-  return hasHumanVoice(body) && /\b(?:lihat|pakai|rasain|ngerasa|perhatiin|coba|nemu|dengar|kelihatan|terasa|bikin|warna|keras|empuk|nyala|norak)\b/iu.test(body);
+  return /\b(?:gw|gue|aku|saya)\b[^.!?\n]{0,120}\b(?:lihat|pakai|rasain|ngerasa|perhatiin|coba|nemu|dengar|kelihatan|terasa|ikut|gowes|ngobrol|duduk|warna|keras|empuk|nyala|norak)\b/iu.test(body);
 }
 
 function hasBroadClosingQuestion(body: string) {
@@ -162,9 +164,17 @@ function referenceReasoningIssue(body: string, referenceUrl?: string) {
   return 'referensi muncul sebelum ada observasi atau keraguan personal';
 }
 
-function unsupportedProductDetail(body: string) {
+function personaCosplay(body: string) {
+  return hasHumanVoice(body) && personaVocabulary.test(body) && !hasConcreteObservation(body) && !hasProcessThought(body);
+}
+
+function unsupportedProductDetail(body: string, evidence: EvidenceSource[]) {
   if (!unsupportedProductClaim.test(body)) return false;
-  return !/\b(?:gw|gue|aku|saya)\s+(?:sudah\s+)?(?:pakai|coba|lihat|pegang|rasain|ngerasa|perhatiin)\b/iu.test(body);
+  if (/\b(?:gw|gue|aku|saya)\s+(?:sudah\s+)?(?:pakai|coba|lihat|pegang|rasain|ngerasa|perhatiin)\b/iu.test(body)) return false;
+  if (evidence.some((item) => item.source === 'user-confirmed')) return false;
+  const metadata = evidence.filter((item) => item.source === 'reference-metadata' && item.text?.trim()).map((item) => item.text).join(' ');
+  if (!metadata) return true;
+  return !/\b(?:mungkin|kelihatannya|sepertinya|bisa\s+jadi|cenderung|lebih\s+ringan|terasa)\b/iu.test(body);
 }
 
 function topicDrift(body: string, topic?: string) {

@@ -5,7 +5,7 @@ MongoDB is the V2 source of truth. Mongoose schemas define the runtime shape; Qd
 | Collection | Important fields | Purpose |
 | --- | --- | --- |
 | `personas` | `name`, `tone`, `vocabulary`, `sentenceLength`, `emojiHabit`, `interactionStyle` | Defines a consistent creator voice. |
-| `knowledge` | V1 fields plus `conflict`, `persona`, `style`, `vocabulary`, `informationGap`, `discussionPattern`, `authorityType`, `ctaStyle`, `naturalness`, `vectorStatus`, `embeddingModel` | Stores extracted narrative DNA, never raw source text. |
+| `knowledge` | V1 fields plus `conflict`, `persona`, `style`, `vocabulary`, `informationGap`, `discussionPattern`, `authorityType`, `ctaStyle`, `naturalness`, optional `lessonType`, `diagnosis`, `rootCause`, `recommendedFix`, `failureDimensions`, `evidenceSources`, `vectorStatus`, `embeddingModel` | Stores diagnosis-rich narrative DNA, never raw source text. |
 | `narratives` | `topic`, `personaId`, `referenceTitle`, `referenceUrl`, `title`, `body`, `linkPlacement`, `reviewerNotes`, `status` | Stores reviewable output. `status` is `draft` or `approved`. |
 | `airuns` | `task`, `model`, `inputHash`, `cached`, `demo`, `inputTokens`, `outputTokens` | Records AI routing and usage decisions. |
 | `threadsconnections` | `key`, `accountId`, encrypted token fields, `expiresAt`, `connectedAt` | Stores one OAuth connection; no email, password, or plaintext token. |
@@ -30,7 +30,7 @@ ThreadsConnection 1 ─── 1 local creator account (V2 single-account boundar
 
 Imported `content` is used only while the knowledge extraction request runs. It must not be added to the `knowledge` schema, logs, or error output. Narrative drafts and AI run metadata remain available for manual review and later analytics.
 
-Curated image-derived DNA in `apps/api/data/knowledge-dna.json` contains metadata only. Run `npm run seed:knowledge-dna` to upsert it, then reindex so Qdrant receives the same compact metadata representation.
+Curated image-derived DNA in `apps/api/data/knowledge-dna.json` contains metadata only. Positive and negative lessons may include diagnosis, root cause, fix, dimensions, and evidence-source labels, but never the source text. Run `npm run seed:knowledge-dna` to upsert it, then reindex so Qdrant receives the same compact metadata representation.
 
 Reference preview HTML and metadata are transient request input. They are never persisted; only a creator-selected `referenceTitle`, `referenceUrl`, and generated narrative draft may be stored.
 

@@ -1,10 +1,4 @@
-# Curated Knowledge DNA
-
-## Purpose
-
-Seed reviewed narrative patterns from non-text references while keeping the same metadata-only and semantic-index boundaries as ordinary knowledge imports.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Curated DNA is metadata only
 The system SHALL allow reviewed positive and negative narrative lessons to be seeded without persisting screenshots, raw thread text, source URLs, or factual allegations. Each lesson MAY include compact diagnosis, root cause, recommended fix, failure dimensions, and evidence-source labels.
@@ -25,17 +19,6 @@ The system SHALL allow reviewed positive and negative narrative lessons to be se
 - **WHEN** a lesson includes a diagnosis, root cause, recommended fix, or failure dimensions
 - **THEN** those compact fields are stored as metadata and remain available to retrieval without storing the source draft
 
-#### Scenario: Batik authenticity lesson is seeded
-- **WHEN** the curated seed command runs with the batik negative lesson
-- **THEN** it stores only the persona-cosplay and evidence-consistency failure pattern, marks it low-naturalness, and sends it through normal reindexing
-
 #### Scenario: Negative lesson is retrieved
 - **WHEN** generation retrieves the beach-wedding product-injection pattern
 - **THEN** the prompt treats it as an anti-pattern to avoid, not as wording or factual source material
-
-### Requirement: Curated DNA enters normal retrieval
-The system SHALL send seeded records through the existing vector reindex flow before semantic retrieval uses them.
-
-#### Scenario: Reindex seeded records
-- **WHEN** the knowledge reindex endpoint processes the seeded records
-- **THEN** it updates their vector status and embedding metadata using the existing orchestrator and Qdrant collection

@@ -19,7 +19,7 @@ export class KnowledgeService {
     const result = await this.ai.complete({
       task: 'knowledge-extraction',
       system: 'Extract reusable Indonesian narrative patterns. Never reproduce source text. Return compact valid JSON only.',
-      prompt: `Analyze this source and return {"topics":["..."],"hookType":"...","emotion":"...","narrativeType":"...","curiosityLevel":1-5,"linkPlacement":"opening|middle|ending|reply","patternSummary":"...","conflict":"...","persona":"...","style":"...","vocabulary":["..."],"informationGap":"...","discussionPattern":"...","authorityType":"...","ctaStyle":"...","naturalness":1-5}.
+      prompt: `Analyze this source and return {"topics":["..."],"hookType":"...","emotion":"...","narrativeType":"...","curiosityLevel":1-5,"linkPlacement":"opening|middle|ending|reply","patternSummary":"...","conflict":"...","persona":"...","style":"...","vocabulary":["..."],"informationGap":"...","discussionPattern":"...","authorityType":"...","ctaStyle":"...","naturalness":1-5,"lessonType":"positive|negative","diagnosis":"why the pattern works or fails","rootCause":"underlying cause","recommendedFix":"reusable fix","failureDimensions":["hook|persona|narrative|evidence|scene|curiosity|discussion|reference|link|reasoning|language"],"evidenceSources":["firsthand|user-confirmed|reference-metadata"]}.
 
 SOURCE:\n${dto.content}`,
       maxTokens: 1000,

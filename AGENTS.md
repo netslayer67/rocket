@@ -9,3 +9,5 @@ For meaningful changes, use OpenSpec: propose → apply → sync → archive. Th
 Ponytail is active: reuse existing code and dependencies, prefer the smallest safe change, and do not add speculative abstractions.
 
 No source-code file may exceed 200 lines. Split by responsibility before crossing the limit. Keep raw source data out of MongoDB, Qdrant, and logs. Run `npm run check:lines`, `npm test`, and `npm run build` before handoff.
+
+Narrative DNA is diagnosis-first: record why a pattern works or fails, its root cause, fix, dimensions, and evidence provenance. Do not turn persona vocabulary into a standalone blacklist or make one reasoning sequence mandatory. Meaningful reviewer/learning changes must include positive and negative OpenSpec scenarios plus a Ponytail ceiling for any narrow heuristic.

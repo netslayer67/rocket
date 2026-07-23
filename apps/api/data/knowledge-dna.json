@@ -16,7 +16,13 @@
     "discussionPattern": "give a specific warning, then invite firsthand reports without asserting unverified facts",
     "authorityType": "firsthand witness plus corroborating professional",
     "ctaStyle": "contextual locator with explicit name, followed by an experience question",
-    "naturalness": 4
+    "naturalness": 4,
+    "lessonType": "positive",
+    "diagnosis": "Urgency feels human when concrete witness details and a clear reason to warn are present.",
+    "rootCause": "A specific safety concern gives the narrator a reason to speak.",
+    "recommendedFix": "Keep claims traceable, distinguish witness from corroboration, and ask for concrete experiences.",
+    "failureDimensions": ["hook", "evidence", "discussion", "reference"],
+    "evidenceSources": ["firsthand", "user-confirmed"]
   },
   {
     "sourceLabel": "DNA: low-budget coffee hack with visual proof",
@@ -35,7 +41,13 @@
     "discussionPattern": "show the result, teach the exact sequence, then invite substitutions or adaptations",
     "authorityType": "repeated personal experiment",
     "ctaStyle": "numbered ingredient references with alternatives, never a bare sales CTA",
-    "naturalness": 5
+    "naturalness": 5,
+    "lessonType": "positive",
+    "diagnosis": "Visual proof and a tested small step make a practical recommendation believable.",
+    "rootCause": "The narrator has repeated the recipe and can point to a visible result.",
+    "recommendedFix": "Show the concrete result, name the non-negotiable step, then offer alternatives.",
+    "failureDimensions": ["hook", "evidence", "reasoning", "link"],
+    "evidenceSources": ["firsthand", "reference-metadata"]
   },
   {
     "sourceLabel": "Negative lesson: beach wedding product injection",
@@ -54,7 +66,13 @@
     "discussionPattern": "generic product question that does not invite a concrete experience",
     "authorityType": "none",
     "ctaStyle": "product-led transition disguised as contextual reference",
-    "naturalness": 1
+    "naturalness": 1,
+    "lessonType": "negative",
+    "diagnosis": "A real heat concern is used as a shortcut into a product description and generic community conclusion.",
+    "rootCause": "The story starts from the product destination instead of following the narrator's branching concern.",
+    "recommendedFix": "Stay with the concrete guest worry; include a reference only when it answers that worry naturally.",
+    "failureDimensions": ["narrative", "reasoning", "evidence", "discussion", "link"],
+    "evidenceSources": []
   },
   {
     "sourceLabel": "Negative lesson: batik persona cosplay and unsupported claims",
@@ -73,6 +91,12 @@
     "discussionPattern": "no real discussion; product description closes the thought",
     "authorityType": "none; garment details are presented without evidence",
     "ctaStyle": "affiliate reference inserted after unsupported product specifications",
-    "naturalness": 1
+    "naturalness": 1,
+    "lessonType": "negative",
+    "diagnosis": "Persona vocabulary appears without an earned scene, while garment details are stated without a traceable source.",
+    "rootCause": "The model imitates vocabulary and marketplace copy instead of observation and doubt.",
+    "recommendedFix": "Build a specific scene first; use persona terms only when they arise naturally and label metadata-based inferences.",
+    "failureDimensions": ["persona", "evidence", "narrative", "discussion", "language"],
+    "evidenceSources": []
   }
 ]

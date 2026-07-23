@@ -13,6 +13,9 @@
 9. Every new or materially changed `apps/web` UI surface MUST pass the strict anti-slop, accessibility, responsive, and motion checklist in `context/AI-SLOP.md`.
 10. Generic AI UI patterns are not defaults. A deliberate exception MUST record user value, simpler alternative, scope, and rollback condition.
 11. Do not add a UI dependency, icon library, detector, token system, or visual-regression service for speculative future needs; follow the Ponytail rules and reuse existing Tailwind primitives.
+12. Narrative reviewer rules must diagnose context, evidence, and reasoning; a vocabulary term alone is never a blocking reason.
+13. Knowledge DNA records should include lesson type, diagnosis, root cause, recommended fix, failure dimensions, and evidence sources when known. Store metadata only.
+14. Preferred narrative flows are optional guidance. Keep alternate shapes valid so generation does not converge on one recognizable template.
 
 ## OpenSpec workflow
 
@@ -30,6 +33,8 @@ Use the project-local `.codex/skills/openspec-*` skills. Project context lives i
 Use the first solution that is both safe and sufficient: reuse local code, then standard library, native browser/platform capability, installed dependencies, and finally new code. Do not add a dependency or abstraction for a single use.
 
 If a deliberate shortcut has a known ceiling, add a `ponytail:` comment with the upgrade condition.
+
+For narrative heuristics, Ponytail means one small contextual check before a word list. A narrow lexical check is allowed only with a `ponytail:` ceiling and a reviewed-example threshold before broadening it. Do not add a detector dependency for this.
 
 For UI, Ponytail means deleting decorative layers before adding them: prefer semantic HTML, native CSS, existing Tailwind classes, and one clear hierarchy. A new component or token is justified only when the same treatment is used in at least two workflows.
 

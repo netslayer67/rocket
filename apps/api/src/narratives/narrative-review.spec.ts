@@ -107,8 +107,28 @@ describe('narrative naturalness review', () => {
     );
 
     const text = notes.join(' ');
-    expect(text).toContain('Persona cosplay');
-    expect(text).toContain('Klaim detail produk');
+    expect(text).toContain('Diagnosis persona');
+    expect(text).toContain('Diagnosis evidence');
     expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
+
+  it('does not ban persona vocabulary when a scene supports it', () => {
+    const notes = reviewNarrative(
+      'Komunitas sepeda di Bandung makin ramai',
+      'Gw ikut gowes bareng komunitas sepeda di Bandung. Tadi kami berhenti di warung kecil dan ngobrol soal rute baru.',
+      { vocabulary: ['gw'] },
+    );
+
+    expect(notes.join(' ')).not.toContain('Diagnosis persona');
+  });
+
+  it('allows a hedged product detail backed by reference metadata', () => {
+    const notes = reviewNarrative(
+      'Batik linen buat siang hari',
+      'Gw belum yakin, tapi kelihatannya jatuhnya kain lebih ringan kalau bahannya linen dan potongannya relaxed fit.',
+      { vocabulary: ['gw'], evidence: [{ source: 'reference-metadata', text: 'Material linen; relaxed fit' }] },
+    );
+
+    expect(notes.join(' ')).not.toContain('Diagnosis evidence');
   });
 });
