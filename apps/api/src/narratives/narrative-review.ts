@@ -33,10 +33,12 @@ const marketplaceLanguage = /\b(?:premium|adem\s+di\s+kulit|bahan(?:nya)?\s+(?:t
 const shoppingTransition = /\b(?:mulai\s+cari|nemuin|nemu|langsung\s+(?:cari|kepikiran)|cari\s+cara)\b[^.!?\n]{0,100}\b(?:produk|kemeja|sepatu|koleksi|shopee)\b/iu;
 const communityTangent = /\b(?:suasana\s+komunitas|komunitas\s+yang\s+(?:hangat|penting)|bagian\s+dari\s+komunitas)\b/iu;
 const weakProductQuestion = /\b(?:apakah|bakal)\b[^?\n]{0,120}\b(?:solusi|nyaman|cocok|bagus)\b[^?\n]*\?$/iu;
+const forcedPersonaContext = /\b(?:acara\s+komunitas|pertemuan\s+kreatif|menggabungkan\s+aspek\s+kultur|kebutuhan\s+fashion\s+masa\s+kini)\b/iu;
+const unsupportedProductClaim = /\b(?:detail\s+furing|furing|siluet\s+tubuh|jatuhnya\s+kain|tetap\s+stabil|kenyamanan\s+tekstur)\b/iu;
 
 export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[] };
 
-export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Do not take the shortest path from a problem to a product: follow a real human concern first, then use a reference only when it naturally answers that concern. Never use marketplace descriptions such as "premium", "adem di kulit", or "bahan tipis" as if copied from a listing. Do not add a new topic such as community without building it. Show a small uncertainty or process of thought before concluding.`;
+export const naturalnessInstruction = `Avoid generic AI framing. Never use contrast reframing such as "bukan X, tapi Y", "X bukan hanya Y. Itu tentang Z", "it's not X, it's about Y", "bukan sekadar", "lebih dari sekadar", a detached "Referensi yang gue maksud", or an em dash. Avoid filler such as "imagine if", "let that sink in", "think about it", "here's the thing", "little did I know", "in a world where", "stop scrolling", "POV", and "unpopular opinion". Prefer concrete observations over abstract metaphors, generic adjectives, or objects with a mysterious "secret". Do not invent an unrelated concrete scene: every place, activity, object, and visual detail must have a believable connection. Do not take the shortest path from a problem to a product: follow a real human concern first, then use a reference only when it naturally answers that concern. Persona is a reasoning style, not a keyword quota: do not insert community, culture, creative, perspective, space, or process vocabulary unless the scene earns it. Think Observe -> Wonder -> Hypothesis -> Reference -> Open Question. Never use marketplace descriptions or claim garment details such as furing, silhouette, fabric drape, or texture stability without firsthand evidence or trusted reference metadata. Do not add a new topic such as community without building it. Show a small uncertainty or process of thought before concluding.`;
 
 export function naturalnessIssues(text: string) {
   return patterns.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
@@ -69,6 +71,8 @@ export function reviewNarrative(title: string, body: string, context: NarrativeR
   const drift = contextDrift(body);
   if (drift) notes.push(block(`Context drift terdeteksi: ${drift}.`));
   if (marketplaceLanguage.test(body)) notes.push(block('Bahasa marketplace terdeteksi; ubah deskripsi listing menjadi observasi pribadi.'));
+  if (forcedPersonaContext.test(body)) notes.push(block('Persona cosplay terdeteksi; jangan memasang istilah komunitas atau kultur tanpa pengalaman yang membangunnya.'));
+  if (unsupportedProductDetail(body)) notes.push(block('Klaim detail produk tidak punya bukti pengalaman; hapus atau ubah menjadi dugaan yang jujur.'));
   const injectionScore = productInjectionScore(body, referenceTitle, referenceUrl);
   if (injectionScore >= 60) notes.push(block(`Product Injection Score ${injectionScore}/100; cerita terasa dibuat untuk mengantar produk.`));
   const reasoningIssue = referenceReasoningIssue(body, referenceUrl);
@@ -156,6 +160,11 @@ function referenceReasoningIssue(body: string, referenceUrl?: string) {
   const beforeReference = body.slice(0, urlIndex);
   if (hasProcessThought(beforeReference) || hasConcreteObservation(beforeReference)) return undefined;
   return 'referensi muncul sebelum ada observasi atau keraguan personal';
+}
+
+function unsupportedProductDetail(body: string) {
+  if (!unsupportedProductClaim.test(body)) return false;
+  return !/\b(?:gw|gue|aku|saya)\s+(?:sudah\s+)?(?:pakai|coba|lihat|pegang|rasain|ngerasa|perhatiin)\b/iu.test(body);
 }
 
 function topicDrift(body: string, topic?: string) {

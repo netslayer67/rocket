@@ -21,6 +21,10 @@ The system SHALL allow reviewed positive and negative narrative lessons to be se
 - **WHEN** an operator adds a reviewed failure pattern
 - **THEN** the record stores only its reusable failure metadata, has a low naturalness score, and is marked for normal reindexing
 
+#### Scenario: Batik authenticity lesson is seeded
+- **WHEN** the curated seed command runs with the batik negative lesson
+- **THEN** it stores only the persona-cosplay and evidence-consistency failure pattern, marks it low-naturalness, and sends it through normal reindexing
+
 #### Scenario: Negative lesson is retrieved
 - **WHEN** generation retrieves the beach-wedding product-injection pattern
 - **THEN** the prompt treats it as an anti-pattern to avoid, not as wording or factual source material

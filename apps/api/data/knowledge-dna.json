@@ -55,5 +55,24 @@
     "authorityType": "none",
     "ctaStyle": "product-led transition disguised as contextual reference",
     "naturalness": 1
+  },
+  {
+    "sourceLabel": "Negative lesson: batik persona cosplay and unsupported claims",
+    "topics": ["formal batik", "persona authenticity", "fashion copy", "evidence consistency"],
+    "hookType": "relatable but generic problem hook",
+    "emotion": "mild confusion",
+    "narrativeType": "negative reviewer lesson",
+    "curiosityLevel": 2,
+    "linkPlacement": "middle",
+    "patternSummary": "Relatable formalwear problem -> forced community/creative vocabulary -> brochure-like garment specification -> product insertion -> no unresolved discussion; reject as persona cosplay and unsupported evidence.",
+    "conflict": "persona vocabulary matches the tone while the reasoning remains synthetic",
+    "persona": "keyword cosplay that imitates a voice without its observation and doubt pattern",
+    "style": "smooth, essay-like, fashion-brochure language, overusing social-context nouns",
+    "vocabulary": ["komunitas", "kreatif", "kultur", "perspektif", "ruang", "proses", "siluet", "furing", "tekstur"],
+    "informationGap": "no concrete personal observation or unresolved question survives the product description",
+    "discussionPattern": "no real discussion; product description closes the thought",
+    "authorityType": "none; garment details are presented without evidence",
+    "ctaStyle": "affiliate reference inserted after unsupported product specifications",
+    "naturalness": 1
   }
 ]

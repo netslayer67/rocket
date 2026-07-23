@@ -98,4 +98,17 @@ describe('narrative naturalness review', () => {
     expect(text).toContain('Topic drift');
     expect(isNaturalnessBlocked(notes)).toBe(true);
   });
+
+  it('blocks persona cosplay and unsupported garment claims', () => {
+    const notes = reviewNarrative(
+      'Batik buat acara formal kadang bikin bingung cari yang pas',
+      'Gue sering datang ke acara komunitas atau pertemuan kreatif. Batik harus menjaga siluet tubuh tetap rapi tanpa mengorbankan kenyamanan tekstur. Ada detail furing yang bikin jatuhnya kain tetap stabil.',
+      { vocabulary: ['gue'] },
+    );
+
+    const text = notes.join(' ');
+    expect(text).toContain('Persona cosplay');
+    expect(text).toContain('Klaim detail produk');
+    expect(isNaturalnessBlocked(notes)).toBe(true);
+  });
 });
