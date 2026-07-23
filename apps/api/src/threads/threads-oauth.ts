@@ -22,7 +22,16 @@ export async function exchangeLongLivedToken(config: ThreadsConfig, accessToken:
 
 async function requestToken(url: string, init?: RequestInit): Promise<TokenResponse> {
   const response = await fetch(url, init);
-  if (!response.ok) throw new Error('Threads token exchange failed');
+  if (!response.ok) throw new Error(`Threads token exchange failed: ${await errorDetail(response)}`);
   const body = await response.json() as TokenResponse;
   return body;
+}
+
+async function errorDetail(response: Response) {
+  try {
+    const body = await response.json() as { error_message?: string; error_type?: string; error?: { message?: string } };
+    return String(body.error_message ?? body.error?.message ?? body.error_type ?? 'Meta rejected the request').slice(0, 180);
+  } catch {
+    return 'Meta rejected the request';
+  }
 }

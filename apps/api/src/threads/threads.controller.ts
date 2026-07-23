@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Query, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Query, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ThreadsService } from './threads.service';
 
@@ -7,6 +7,8 @@ type CallbackResponse = { redirect: (url: string) => void; setHeader: (name: str
 
 @Controller('threads')
 export class ThreadsController {
+  private readonly logger = new Logger(ThreadsController.name);
+
   constructor(private readonly threads: ThreadsService, private readonly config: ConfigService) {}
 
   @Get('status')
@@ -34,7 +36,8 @@ export class ThreadsController {
       await this.threads.complete(code, state, cookieValue(request.headers.cookie, 'threads_oauth_state'));
       response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie, this.cookiePath));
       response.redirect(this.dashboardUrl('connected'));
-    } catch {
+    } catch (error) {
+      this.logger.error(`Threads OAuth callback failed: ${safeError(error)}`);
       response.setHeader('Set-Cookie', clearStateCookie(this.secureCookie, this.cookiePath));
       response.redirect(this.dashboardUrl('error'));
     }
@@ -57,6 +60,10 @@ export class ThreadsController {
   private get cookiePath() {
     return oauthCookiePath(this.config.get<string>('THREADS_REDIRECT_URI', ''));
   }
+}
+
+function safeError(error: unknown) {
+  return (error instanceof Error ? error.message : String(error)).slice(0, 240).replace(/[\r\n]/gu, ' ');
 }
 
 function cookieValue(cookieHeader: string | undefined, name: string) {
