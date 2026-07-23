@@ -60,7 +60,7 @@ export class ThreadsService {
     if (!connection || connection.expiresAt.getTime() <= Date.now()) throw new BadRequestException('Threads connection expired. Reconnect before publishing.');
     const token = decryptToken(connection, config.encryptionKey);
     const container = await threadsRequest('me/threads', token, { media_type: 'TEXT', text });
-    const published = await threadsRequest('me/threads_publish', token, { creation_id: String(container.id) });
+    const published = await threadsRequest(`me/threads_publish?creation_id=${encodeURIComponent(String(container.id))}`, token, {});
     return { threadId: String(published.id) };
   }
 

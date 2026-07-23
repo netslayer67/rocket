@@ -23,7 +23,8 @@ export class VectorIndexService {
         body: { points: [{ id: vectorPointId(String(knowledge._id)), vector: embedding.vector, payload: { knowledgeId: String(knowledge._id) } }] },
       });
       return { status: 'ready', embeddingModel: embedding.model };
-    } catch {
+    } catch (error) {
+      console.warn('Knowledge vector index failed', safeError(error));
       return { status: 'pending' };
     }
   }
@@ -38,7 +39,8 @@ export class VectorIndexService {
       const result = body.result;
       const points = Array.isArray(result) ? result : result?.points ?? [];
       return points.map((point) => point.payload?.knowledgeId).filter((id): id is string => typeof id === 'string');
-    } catch {
+    } catch (error) {
+      console.warn('Knowledge vector search failed', safeError(error));
       return [];
     }
   }
@@ -78,4 +80,9 @@ export class VectorIndexService {
     const apiKey = this.config.get<string>('QDRANT_API_KEY');
     return { 'Content-Type': 'application/json', ...(apiKey ? { 'api-key': apiKey } : {}) };
   }
+}
+
+function safeError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/"user_id":"[^"]+"/g, '"user_id":"redacted"').slice(0, 300);
 }

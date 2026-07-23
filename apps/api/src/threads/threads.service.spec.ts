@@ -46,6 +46,7 @@ describe('ThreadsService', () => {
     await expect(new ThreadsService(config(), connections as never).publishText('hello')).resolves.toEqual({ threadId: 'thread-1' });
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[0][0]).toContain('/me/threads');
+    expect(fetchMock.mock.calls[1][0]).toContain('/me/threads_publish?creation_id=container-1');
     fetchMock.mockRestore();
   });
 });
