@@ -31,7 +31,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 | `apps/web` | User input, review, and manual approval UI. No model calls. |
 | `apps/api` | Validation, domain services, persistence, and API endpoints. |
 | `ai` module | Prompt construction, chat fallback, embedding cache, and telemetry. |
-| MongoDB | Personas, pattern metadata, narrative drafts, and AI run metadata. |
+| MongoDB | Personas, pattern metadata, narrative drafts, compact SSE job events, and AI run metadata. |
 | Qdrant | Vector plus Mongo knowledge ID only; never the imported source. |
 | `threads` module | OAuth state, encrypted token persistence, and connection status; never publishing. |
 | `apps/crawler` | Manual public-page acquisition with Scrapy and optional Nutch candidate discovery; no dashboard or API process execution. |
@@ -44,7 +44,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 4. Knowledge retrieval selects semantic matches, then falls back to lexical patterns.
 5. A creator can optionally request a transient public-link preview that returns metadata and an editable topic suggestion through the AI Orchestrator.
 6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft.
-7. Generation runs as an in-process job. The API returns a job ID, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft.
+7. The API persists a compact job record and returns a job ID. The SSE request replays `queued`, claims the job once, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft. This works across Vercel function instances without adding a queue.
 8. Deterministic checks flag missing contextual references, promotional phrasing, generic AI patterns, article-style hooks, absent persona voice, and observed incompatible concrete scenes; one live rewrite is bounded through the orchestrator.
 9. The user reviews and approves the draft before copying it to a platform.
 10. A creator can connect one Threads account through Meta OAuth; only an approved draft can invoke the explicit text publisher.
@@ -60,7 +60,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 - Imported source text is transient; only pattern metadata is stored.
 - Reference-preview HTML is transient; only creator-selected narrative fields are stored.
 - A narrative stays `draft` until a person approves it; publishing is a separate explicit action.
-- The SSE `complete` event is emitted only after the draft is persisted; job state is in-process and bounded.
+- The SSE `complete` event is emitted only after the draft is persisted; job payload/events are compact, Mongo-backed, and bounded.
 - AI model, caching, and token usage are logged in `AiRun`.
 - A failed semantic index marks a record `pending`; it never blocks metadata import.
 - Threads email, password, and plaintext access tokens are never persisted or returned by the API.
@@ -69,4 +69,4 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 
 ## Deferred architecture
 
-BullMQ/Redis, durable multi-instance job recovery, platform analytics ingestion, replies, token refresh jobs, and trend analysis belong to V2–V5. V1 analytics are manual capture and its learning timer is single-process only. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.
+BullMQ/Redis queues, durable retries/scheduling, platform analytics ingestion, replies, token refresh jobs, and trend analysis belong to V2–V5. V1 job replay is Mongo-backed but intentionally lacks queue semantics. V1 analytics are manual capture and its learning timer is single-process only. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.

@@ -22,7 +22,7 @@ describe('V1 regression smoke path', () => {
 
     const saved = { _id: narrativeId, topic: 'waktu ngobrol', personaId: narrativeId, title: 'gw baru kepikiran soal waktu', body: 'gw baru sadar, waktu ngobrol lebih memengaruhi fokus daripada tempatnya.', linkPlacement: 'ending', reviewerNotes: [], status: 'draft' as const };
     const jobs = new NarrativeJobService();
-    const jobId = jobs.create();
+    const jobId = await jobs.create();
     const events: string[] = [];
     let persisted = false;
     jobs.events(jobId).subscribe({ next: (event) => { events.push(event.type ?? ''); if (event.type === 'complete') expect(persisted).toBe(true); } });

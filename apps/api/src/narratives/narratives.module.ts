@@ -9,6 +9,7 @@ import { Narrative, NarrativeSchema } from './schemas/narrative.schema';
 import { NarrativeJobRunner } from './narrative-job.runner';
 import { NarrativeJobService } from './narrative-job.service';
 import { ThreadsModule } from '../threads/threads.module';
+import { NarrativeJob, NarrativeJobSchema } from './schemas/narrative-job.schema';
 
 @Module({
   imports: [
@@ -16,7 +17,10 @@ import { ThreadsModule } from '../threads/threads.module';
     KnowledgeModule,
     PersonasModule,
     ThreadsModule,
-    MongooseModule.forFeature([{ name: Narrative.name, schema: NarrativeSchema }]),
+    MongooseModule.forFeature([
+      { name: Narrative.name, schema: NarrativeSchema },
+      { name: NarrativeJob.name, schema: NarrativeJobSchema },
+    ]),
   ],
   controllers: [NarrativesController],
   providers: [NarrativesService, NarrativeJobService, NarrativeJobRunner],

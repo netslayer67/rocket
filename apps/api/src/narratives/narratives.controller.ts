@@ -15,15 +15,13 @@ export class NarrativesController {
   }
 
   @Post('generate')
-  generate(@Body() dto: GenerateNarrativeDto) {
-    const jobId = this.jobs.create();
-    void this.runner.run(jobId, dto);
-    return { jobId };
+  async generate(@Body() dto: GenerateNarrativeDto) {
+    return { jobId: await this.jobs.create(dto) };
   }
 
   @Sse('events')
   events(@Query('jobId', ParseUUIDPipe) jobId: string) {
-    return this.jobs.events(jobId);
+    return this.jobs.events(jobId, (input) => this.runner.run(jobId, input as unknown as GenerateNarrativeDto));
   }
 
   @Post('suggestions')

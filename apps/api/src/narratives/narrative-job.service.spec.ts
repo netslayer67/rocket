@@ -4,9 +4,9 @@ describe('NarrativeJobService', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
 
-  it('replays lifecycle events and closes after completion', () => {
+  it('replays lifecycle events and closes after completion', async () => {
     const service = new NarrativeJobService();
-    const id = service.create();
+    const id = await service.create();
     const events: string[] = [];
     service.events(id).subscribe({ next: (event) => events.push(event.type ?? ''), complete: () => events.push('closed') });
 
