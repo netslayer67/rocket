@@ -1,57 +1,126 @@
-# Rocket Project
+<div align="center">
 
-> **AI Narrative Engine** — mulai dari insight, hadirkan referensi secara alami.
+<h1>ROCKET</h1>
 
-Rocket membantu creator menyusun narasi yang terasa seperti obrolan manusia: persona → pola → draft → review → publish manual → feedback.
+<p><strong>An AI Narrative Engine for natural, reference-led conversations.</strong></p>
 
-<p align="center">
-  <a href="https://rocket-web-five.vercel.app"><strong>Open Studio</strong></a> ·
-  <a href="https://rocket-api-hazel.vercel.app/api/threads/status"><strong>API status</strong></a> ·
+<p>
+  <a href="https://rocket-web-five.vercel.app"><strong>Open Studio</strong></a>
+  ·
+  <a href="https://rocket-api-hazel.vercel.app/api/threads/status"><strong>API status</strong></a>
+  ·
   <a href="context/PRD.md"><strong>Product context</strong></a>
 </p>
 
-## Progress
+<table>
+  <tr>
+    <td align="center"><strong>V1</strong><br><progress value="100" max="100"></progress><br>100% complete</td>
+    <td align="center"><strong>V2</strong><br><progress value="90" max="100"></progress><br>90% in progress</td>
+    <td align="center"><strong>Source files</strong><br><code>&lt; 200 lines</code><br>maintenance guard</td>
+  </tr>
+</table>
 
-| Scope | Status | Fokus |
-| --- | --- | --- |
-| **V1 — Narrative Engine** | <progress value="100" max="100">100%</progress> `complete` | Persona, DNA import, SSE generation, review, approval, manual Threads publish, feedback, learning, analytics |
-| **V2 — Knowledge Engine** | <progress value="90" max="100">90%</progress> `active` | Hybrid retrieval, multi-angle suggestions, reviewer diagnosis, outcome-to-DNA approval, richer reference metadata |
+</div>
+
+Rocket starts with a human observation, learns from narrative patterns, and treats a link as context—not as an advertisement. It is designed for creators who care about curiosity, trust, discussion quality, and a recognizable human voice.
 
 <details>
-<summary>V2 checkpoints</summary>
+<summary><strong>What Rocket is (and is not)</strong></summary>
 
-**Done:** hybrid semantic + lexical retrieval · evidence-aware angles · diagnosis-first reviewer output · manual analytics candidates · explicit outcome-to-DNA promotion · bounded reference metadata.
+Rocket is a modular narrative workspace. It combines persona thinking, pattern DNA, contextual references, review diagnostics, manual feedback, and measured outcomes into one creator-controlled flow.
 
-**Next:** model benchmark history and evidence-based routing.
+It is not a generic AI writer, a thread spinner, or a product-first affiliate generator. The product never leads the story; the narrative earns the reference.
 
 </details>
 
+## Blueprint in one view
+
 ```mermaid
 flowchart LR
-  A[Persona] --> B[Pattern DNA]
-  B --> C[Topic + reference]
-  C --> D[Generate via SSE]
-  D --> E[Review]
-  E -->|manual approval| F[Publish to Threads]
-  F --> G[Analytics]
-  G --> H[Feedback]
-  H --> I[Learning]
-  I --> B
+  A[Human observation] --> B[Persona voice]
+  B --> C[Narrative DNA]
+  C --> D[Contextual reference]
+  D --> E[Draft via orchestrator]
+  E --> F[Review and approval]
+  F --> G[Manual publish]
+  G --> H[Measured feedback]
+  H --> C
 ```
 
-## What is already working
+Every model request passes through the AI Orchestrator. Retrieval is bounded, metadata is preferred over raw source text, and publishing stays behind an explicit approval boundary.
 
-- **V1:** persona workspace, metadata-only knowledge import, narrative generation, reviewer gate, manual approval, official Threads OAuth/publish, feedback learning, and manual CTR/engagement capture.
-- **V2:** Qdrant semantic search with lexical fallback, editable multi-angle reference suggestions, evidence-aware reviewer diagnostics, explicit positive/negative outcome promotion, and transient reference metadata enrichment.
-- **Guardrails:** every LLM call uses the orchestrator, raw thread/page content is not persisted, links stay contextual, and source files stay under 200 lines.
+<details>
+<summary><strong>Core principles</strong></summary>
+
+<table>
+  <tr><th>Principle</th><th>Meaning</th></tr>
+  <tr><td>Narrative first</td><td>Start with an insight, tension, or observation—not a product.</td></tr>
+  <tr><td>Reference, not CTA</td><td>A link appears because it helps the conversation make sense.</td></tr>
+  <tr><td>DNA, not copies</td><td>Store reusable patterns and diagnoses, never raw threads or page bodies.</td></tr>
+  <tr><td>Human review</td><td>Approval, publishing, and learning remain visible operator decisions.</td></tr>
+  <tr><td>Evidence before confidence</td><td>Claims keep provenance, and manual metrics are never presented as causation.</td></tr>
+</table>
+
+</details>
+
+## Scope progress
+
+| Scope | Progress | What is working |
+| --- | ---: | --- |
+| **V1 · Narrative Engine** | **100%** | Persona workspace, metadata-only DNA import, SSE generation, review gate, manual Threads approval/publish, feedback learning, and manual analytics. |
+| **V2 · Knowledge Engine** | **90%** | Hybrid semantic + lexical retrieval, editable multi-angle suggestions, evidence-aware diagnostics, explicit outcome-to-DNA promotion, and richer transient reference metadata. |
+
+<details>
+<summary><strong>V1 delivery checklist</strong></summary>
+
+- Persona creation and voice controls
+- Knowledge import that extracts patterns instead of storing source text
+- Narrative generation with server-sent progress events
+- Reviewer gate with manual approval
+- Official Threads OAuth and manual publishing
+- Feedback learning with explicit approval
+- Manual CTR and engagement calculations
+
+</details>
+
+<details>
+<summary><strong>V2 delivery checklist</strong></summary>
+
+- Qdrant semantic retrieval with a lexical fallback
+- Reference angle suggestions with confidence, reason, and provenance
+- Diagnosis-first review output and stable diagnostics
+- Reviewable analytics candidates with transparent sample context
+- Explicit positive/negative outcome promotion into reusable DNA
+- Bounded reference metadata: type, site, author, section, date, price, currency, and canonical URL
+
+</details>
+
+## System shape
+
+```text
+Next.js Studio
+      │
+      ▼
+NestJS API ──► AI Orchestrator ──► OpenRouter
+      │                 │
+      │                 ├── prompt and token controls
+      │                 ├── retrieval context
+      │                 └── response validation
+      │
+      ├── MongoDB  (narrative and knowledge metadata)
+      ├── Qdrant   (derived semantic index)
+      └── Threads  (official OAuth and approved publishing)
+```
+
+The dashboard is built with Next.js, TypeScript, and Tailwind CSS. The API is NestJS-based, with MongoDB as the metadata source of truth and Qdrant as a derived index.
 
 ## Quick start
 
-1. Copy `apps/api/.env.example` to `apps/api/.env` and add an OpenRouter key for live generation. Without it, the API uses a safe demo response.
+1. Copy `apps/api/.env.example` to `apps/api/.env` and add the credentials required for your environment.
 2. Start local services: `docker compose up -d`.
 3. Install dependencies: `npm install`.
 4. Start the API: `npm run dev:api`.
-5. In another terminal start the web app: `npm run dev`.
+5. In another terminal, start the web app: `npm run dev`.
 6. Open `http://localhost:3000`.
 
 Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
@@ -61,29 +130,29 @@ Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
 - Web: [rocket-web-five.vercel.app](https://rocket-web-five.vercel.app)
 - API: [rocket-api-hazel.vercel.app](https://rocket-api-hazel.vercel.app)
 
-Production uses Vercel environment variables. Never commit `.env`, tokens, app secrets, or encryption keys.
+Production secrets are managed by Vercel. Never commit `.env` files, access tokens, app secrets, encryption keys, or private source material.
 
-## Knowledge and references
+## Knowledge and reference safety
 
-Knowledge stores narrative DNA only: hook, emotion, conflict, information gap, discussion pattern, diagnosis, root cause, fix, dimensions, and evidence provenance. Qdrant stores the derived vector index.
+Knowledge records contain narrative DNA: hooks, emotions, conflict, information gaps, discussion patterns, diagnoses, root causes, fixes, dimensions, and evidence provenance. Qdrant stores only the derived vector representation.
 
-Reference previews are bounded and transient. When available, Rocket can use type, site, author, section, publish time, price, currency, and canonical URL in the orchestrator context—never the raw page body.
+Reference previews are bounded and transient. When available, Rocket can use structured metadata in the orchestrator context without retaining the fetched page body.
 
-Use **Reindex semantic search** after adding or changing DNA, or run:
+Use **Reindex semantic search** after adding or changing DNA, or call:
 
 ```text
 POST /knowledge/reindex
 ```
 
-## Optional tools
+## Optional tooling
 
-- [Manual crawler](apps/crawler/README.md): compliant Scrapy import and same-domain Nutch discovery. No dashboard crawling or scheduled scraping in V1.
+- [Manual crawler](apps/crawler/README.md): compliant Scrapy import and same-domain Nutch discovery.
 - `npm run seed:knowledge-dna`: add the reviewed metadata-only fixture, then reindex Qdrant.
-- Threads connection uses official OAuth. Rocket never accepts a Threads password.
+- Threads connection uses the official OAuth flow; Rocket never accepts a Threads password.
 
-## Development rules
+## Engineering guardrails
 
-Read [AGENTS.md](AGENTS.md) and [context/RULES.md](context/RULES.md) before meaningful changes. Use OpenSpec for proposal → implementation → sync → archive, and Ponytail for the smallest safe solution.
+Read [AGENTS.md](AGENTS.md) and [context/RULES.md](context/RULES.md) before meaningful changes. OpenSpec documents behavior changes, while Ponytail keeps the implementation small and observable.
 
 ```text
 npm run check:lines
@@ -92,7 +161,3 @@ npm run build
 ```
 
 Project context: [PRD](context/PRD.md) · [Architecture](context/ARCHITECTURE.md) · [Design](context/DESIGN.md) · [Schema](context/SCHEMA.md) · [AI-Slop rules](context/AI-SLOP.md) · [V2 audit](context/V2-AUDIT.md)
-
-## Roadmap
-
-V2 remaining focus: model benchmark history and evidence-based routing. Later scopes cover scheduling, richer platform analytics, reply assistance, and strategic trend selection.
