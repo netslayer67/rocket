@@ -1,32 +1,89 @@
 # Rocket Project
 
-V2 is a local-first AI Narrative Engine: persona management, pattern-only knowledge import, Qdrant semantic retrieval, narrative generation, and manual copy/publish.
+> **AI Narrative Engine** — mulai dari insight, hadirkan referensi secara alami.
 
-## Run
+Rocket membantu creator menyusun narasi yang terasa seperti obrolan manusia: persona → pola → draft → review → publish manual → feedback.
 
-1. Copy `apps/api/.env.example` to `apps/api/.env` and add an OpenRouter key if you want live generation. Without one, the generator deliberately uses a local demo response.
-2. Run `docker compose up -d` to start MongoDB and Qdrant.
-3. Ensure at least 2 GB of free disk space, then run `npm install`.
-4. Run `npm run dev:api`, then `npm run dev` in another terminal.
-5. Open `http://localhost:3000`.
+<p align="center">
+  <a href="https://rocket-web-five.vercel.app"><strong>Open Studio</strong></a> ·
+  <a href="https://rocket-api-hazel.vercel.app/api/threads/status"><strong>API status</strong></a> ·
+  <a href="context/PRD.md"><strong>Product context</strong></a>
+</p>
 
-The API starts at `http://localhost:4000`. V2 does not publish to any external platform; the generated narrative is copied manually for approval.
+## Progress
 
-## Optional compliant discovery
+| Scope | Status | Fokus |
+| --- | --- | --- |
+| **V1 — Narrative Engine** | <progress value="100" max="100">100%</progress> `complete` | Persona, DNA import, SSE generation, review, approval, manual Threads publish, feedback, learning, analytics |
+| **V2 — Knowledge Engine** | <progress value="90" max="100">90%</progress> `active` | Hybrid retrieval, multi-angle suggestions, reviewer diagnosis, outcome-to-DNA approval, richer reference metadata |
 
-[apps/crawler](apps/crawler/README.md) contains the V1 manual crawler tools. Scrapy can import a creator-selected public page through the existing knowledge API; it obeys robots.txt, limits requests, and retains no raw page text. Apache Nutch is an optional Bash/WSL command for same-domain URL discovery only. Neither tool is available from the dashboard, scheduled, or connected to publishing.
+<details>
+<summary>V2 checkpoints</summary>
 
-## Optional Threads connection
+**Done:** hybrid semantic + lexical retrieval · evidence-aware angles · diagnosis-first reviewer output · manual analytics candidates · explicit outcome-to-DNA promotion · bounded reference metadata.
 
-Create a Meta App with the Threads use case, register the exact `THREADS_REDIRECT_URI`, then set `THREADS_APP_ID`, `THREADS_APP_SECRET`, and a base64 32-byte `THREADS_TOKEN_ENCRYPTION_KEY` in `apps/api/.env`. The dashboard then sends the creator to the official Threads authorization screen. Rocket Project never accepts a Threads email or password, and connection alone cannot publish content.
+**Next:** model benchmark history and evidence-based routing.
 
-After upgrading existing V1 data, use **Reindex semantic search** in Knowledge Library or `POST /knowledge/reindex`. If Qdrant or the embedding model is unavailable, import and generation still use the lexical fallback.
+</details>
 
-Developers can add the reviewed image-derived DNA fixture with `npm run seed:knowledge-dna`, then call `POST /knowledge/reindex`. The fixture stores pattern metadata only, never screenshots or raw thread text.
+```mermaid
+flowchart LR
+  A[Persona] --> B[Pattern DNA]
+  B --> C[Topic + reference]
+  C --> D[Generate via SSE]
+  D --> E[Review]
+  E -->|manual approval| F[Publish to Threads]
+  F --> G[Analytics]
+  G --> H[Feedback]
+  H --> I[Learning]
+  I --> B
+```
+
+## What is already working
+
+- **V1:** persona workspace, metadata-only knowledge import, narrative generation, reviewer gate, manual approval, official Threads OAuth/publish, feedback learning, and manual CTR/engagement capture.
+- **V2:** Qdrant semantic search with lexical fallback, editable multi-angle reference suggestions, evidence-aware reviewer diagnostics, explicit positive/negative outcome promotion, and transient reference metadata enrichment.
+- **Guardrails:** every LLM call uses the orchestrator, raw thread/page content is not persisted, links stay contextual, and source files stay under 200 lines.
+
+## Quick start
+
+1. Copy `apps/api/.env.example` to `apps/api/.env` and add an OpenRouter key for live generation. Without it, the API uses a safe demo response.
+2. Start local services: `docker compose up -d`.
+3. Install dependencies: `npm install`.
+4. Start the API: `npm run dev:api`.
+5. In another terminal start the web app: `npm run dev`.
+6. Open `http://localhost:3000`.
+
+Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
+
+## Production
+
+- Web: [rocket-web-five.vercel.app](https://rocket-web-five.vercel.app)
+- API: [rocket-api-hazel.vercel.app](https://rocket-api-hazel.vercel.app)
+
+Production uses Vercel environment variables. Never commit `.env`, tokens, app secrets, or encryption keys.
+
+## Knowledge and references
+
+Knowledge stores narrative DNA only: hook, emotion, conflict, information gap, discussion pattern, diagnosis, root cause, fix, dimensions, and evidence provenance. Qdrant stores the derived vector index.
+
+Reference previews are bounded and transient. When available, Rocket can use type, site, author, section, publish time, price, currency, and canonical URL in the orchestrator context—never the raw page body.
+
+Use **Reindex semantic search** after adding or changing DNA, or run:
+
+```text
+POST /knowledge/reindex
+```
+
+## Optional tools
+
+- [Manual crawler](apps/crawler/README.md): compliant Scrapy import and same-domain Nutch discovery. No dashboard crawling or scheduled scraping in V1.
+- `npm run seed:knowledge-dna`: add the reviewed metadata-only fixture, then reindex Qdrant.
+- Threads connection uses official OAuth. Rocket never accepts a Threads password.
 
 ## Development rules
 
-Read [AGENTS.md](AGENTS.md) and the documents in [context](context) before a meaningful change. Use the local OpenSpec skills for proposal → implementation → sync → archive; Ponytail keeps the implementation minimal and safe.
+Read [AGENTS.md](AGENTS.md) and [context/RULES.md](context/RULES.md) before meaningful changes. Use OpenSpec for proposal → implementation → sync → archive, and Ponytail for the smallest safe solution.
 
 ```text
 npm run check:lines
@@ -34,4 +91,8 @@ npm test
 npm run build
 ```
 
-Source-code files are limited to 200 lines. The checker covers `apps/` and `scripts/`. The environment template lists Qdrant and embedding-model settings in [apps/api/.env.example](apps/api/.env.example).
+Project context: [PRD](context/PRD.md) · [Architecture](context/ARCHITECTURE.md) · [Design](context/DESIGN.md) · [Schema](context/SCHEMA.md) · [AI-Slop rules](context/AI-SLOP.md) · [V2 audit](context/V2-AUDIT.md)
+
+## Roadmap
+
+V2 remaining focus: model benchmark history and evidence-based routing. Later scopes cover scheduling, richer platform analytics, reply assistance, and strategic trend selection.
