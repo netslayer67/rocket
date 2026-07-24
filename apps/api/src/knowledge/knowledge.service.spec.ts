@@ -20,6 +20,15 @@ describe('KnowledgeService hybrid retrieval', () => {
     expect(result.records).toHaveLength(1);
   });
 
+  it('keeps semantic-only matches when lexical search adds nothing', async () => {
+    const service = makeService([record('semantic', ['other'])], { ids: ['semantic'], failed: false });
+
+    const result = await service.findRelevantWithMeta('basket');
+
+    expect(result.metadata.mode).toBe('semantic');
+    expect(result.records.map((item) => item._id)).toEqual(['semantic']);
+  });
+
   it('uses recent records when neither query path has a match', async () => {
     const service = makeService([record('recent', ['other'])], { ids: [], failed: false });
 
@@ -27,6 +36,14 @@ describe('KnowledgeService hybrid retrieval', () => {
 
     expect(result.metadata.mode).toBe('recent-fallback');
     expect(result.metadata.knowledgeIds).toEqual(['recent']);
+  });
+
+  it('returns an empty result when the library has no records', async () => {
+    const service = makeService([], { ids: [], failed: false });
+
+    const result = await service.findRelevantWithMeta('basket');
+
+    expect(result.metadata).toEqual({ mode: 'empty', semanticCount: 0, lexicalCount: 0, knowledgeIds: [] });
   });
 });
 
