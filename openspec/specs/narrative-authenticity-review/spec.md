@@ -7,11 +7,11 @@ Keep references inside a believable human thought process instead of using a nar
 ## Requirements
 
 ### Requirement: Reference enters through human reasoning
-The reviewer SHALL detect a reference that is introduced through an abrupt marketplace transition instead of an observable concern or thought process. Persona vocabulary SHALL be evaluated with its surrounding scene, thinking style, and reasoning, never as a standalone forbidden-word list. Product details SHALL be evaluated against available evidence provenance, not a firsthand-only rule. Feedback dimensions SHALL be available for later diagnosis but SHALL NOT make one reasoning sequence mandatory.
+The reviewer SHALL detect a reference that is introduced through an abrupt marketplace transition instead of an observable concern or thought process. Persona vocabulary SHALL be evaluated with its surrounding scene, thinking style, and reasoning, never as a standalone forbidden-word list. Product details SHALL be evaluated against available evidence provenance, including the selected angle's metadata-only labels, not a firsthand-only rule. Feedback dimensions SHALL be available for later diagnosis through stable diagnostic codes but SHALL NOT make one reasoning sequence mandatory.
 
 #### Scenario: Product is injected
 - **WHEN** a draft uses marketplace language or a shopping transition to introduce its reference without a prior human concern
-- **THEN** the reviewer records a blocking Product Injection Score and explains that the story is carrying the product
+- **THEN** the reviewer records a blocking Product Injection Score, exposes a reference-dimension diagnostic, and explains that the story is carrying the product
 
 #### Scenario: Reference follows an observation
 - **WHEN** a draft shows a concrete personal observation and uncertainty before a contextual reference bridge

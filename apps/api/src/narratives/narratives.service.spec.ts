@@ -63,7 +63,7 @@ describe('NarrativesService quality gate', () => {
 
   it('rewrites a weak draft using the resolved reference title', async () => {
     const url = 'https://shop.example/giannis';
-    jest.mocked(fetchReferencePreview).mockResolvedValue({ host: 'shop.example', title: 'Giannis Immortality Basketball Shoes', description: 'Sepatu basket' });
+    jest.mocked(fetchReferencePreview).mockResolvedValue({ host: 'shop.example', title: 'Giannis Immortality Basketball Shoes', description: 'Sepatu basket', type: 'product', siteName: 'Shop Example', price: '899000', currency: 'IDR' });
     const ai = { complete: jest.fn()
       .mockResolvedValueOnce({ mode: 'live', content: JSON.stringify({ title: 'Logika Transfer Pemain dan Masa Depan LeBron', body: 'Garis lapangan basket seringkali menjadi ruang penuh spekulasi.', linkPlacement: 'ending' }) })
       .mockResolvedValueOnce({ mode: 'live', content: JSON.stringify({ title: 'gw masih kepikiran cara orang milih sepatu basket', body: `gw baru sadar banyak orang bahas Giannis cuma dari highlight-nya. Sepatu Giannis Immortality ini bikin gw melihat cara dia bergerak dari sisi lain: ${url}`, linkPlacement: 'ending' }) }),
@@ -77,6 +77,7 @@ describe('NarrativesService quality gate', () => {
 
     expect(ai.complete).toHaveBeenCalledTimes(2);
     expect(ai.complete.mock.calls[0][0].prompt).toContain('REFERENCE TITLE: Giannis Immortality Basketball Shoes');
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('Shop Example');
     expect(result.referenceTitle).toBe('Giannis Immortality Basketball Shoes');
     expect(result.reviewerNotes.some((note: string) => note.startsWith('Review blocked:'))).toBe(false);
   });

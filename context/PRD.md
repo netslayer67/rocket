@@ -28,6 +28,10 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 12. Reviewers can submit dimension scores and, when explicitly approved, turn feedback into reusable diagnosis-first DNA.
 13. Operators can capture manual views/clicks/engagement and see derived CTR and engagement rates.
 14. An opt-in daily learning tick and a manual learning run process approved feedback without publishing.
+15. Review responses expose stable diagnostic codes while preserving human-readable reviewer notes.
+16. Operators can inspect bounded, manual outcome candidates grouped by narrative without auto-promoting DNA.
+17. Operators can explicitly approve a positive or negative outcome candidate and promote it once into diagnosis-first DNA.
+18. Reference suggestions can use bounded type, site, author, section, publish time, price, currency, and canonical metadata when available.
 
 ## Functional requirements
 
@@ -38,12 +42,12 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 | Retrieval | Embed compact metadata, merge bounded semantic matches from Qdrant with lexical matches, then use recent patterns as a safe fallback. |
 | Narrative | Retrieve relevant patterns and generate a JSON draft through the orchestrator. |
 | Generation progress | Return a job ID, stream bounded server progress over SSE, persist the draft, then emit completion with the saved draft. |
-| Reference suggestion | Read transient public-link metadata and suggest an editable, broader discussion angle without inventing claims. |
-| Review | Flag generic AI patterns, article-style hooks, missing persona voice, missing contextual link bridges, observed incompatible concrete scenes, and obvious hard-selling phrases. |
+| Reference suggestion | Read transient public-link metadata and suggest an editable recommended angle plus bounded alternatives without inventing claims. Optional type/site/author/section/date/price/canonical fields improve context without storing the page. |
+| Review | Flag generic AI patterns, article-style hooks, missing persona voice, missing contextual link bridges, observed incompatible concrete scenes, and obvious hard-selling phrases; expose stable diagnosis dimensions. |
 | Approval | Keep the draft unpublished until a user marks it approved. |
 | Threads publishing | Publish one approved text narrative through the official Threads API only after explicit operator action. |
 | Feedback learning | Store structured reviewer dimensions and create compact DNA only when approved for learning. |
-| Analytics | Capture manual metrics and derive CTR and engagement; label the source as manual. |
+| Analytics | Capture manual metrics, derive CTR and engagement, expose grouped outcome candidates, and promote only after explicit typed approval; label the source as manual and never claim causation. |
 | Crawl discovery | Crawl only a creator-approved public page with robots, domain, size, delay, and page limits; Nutch only discovers manually reviewed candidate URLs. |
 | Observability | Store model choice, cache hit, demo mode, reported token usage, and bounded retrieval mode/IDs without prompts or source text. |
 

@@ -10,6 +10,8 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
   const intervalRef = useRef<number | undefined>(undefined);
   const timeoutRef = useRef<number | undefined>(undefined);
   const [progress, setProgress] = useState<Progress>();
+  const [suggestion, setSuggestion] = useState<NarrativeSuggestion>();
+  const [angleTitle, setAngleTitle] = useState('');
 
   useEffect(() => () => stopTimers(intervalRef, timeoutRef), []);
 
@@ -20,7 +22,7 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     setProgress({ action: 'generate', value: 8, state: 'pending' });
     const saved = await onGenerate({ topic: String(values.get('topic')), personaId: String(values.get('personaId')), referenceTitle: optional(values.get('referenceTitle')), referenceUrl: optional(values.get('referenceUrl')) }, updateServerProgress);
     finishProgress(saved, intervalRef, timeoutRef, setProgress);
-    if (saved) form.reset();
+    if (saved) { form.reset(); setSuggestion(undefined); setAngleTitle(''); }
   }
 
   function updateServerProgress(event: NarrativeJobEvent) {
@@ -38,6 +40,8 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     if (!suggestion) return;
     setField(form, 'topic', suggestion.topic);
     setField(form, 'referenceTitle', suggestion.referenceTitle);
+    setSuggestion(suggestion);
+    setAngleTitle(suggestion.recommendedAngle.title);
   }
 
   return (
@@ -47,12 +51,19 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
         <Field label="Pakai suara"><select name="personaId" required defaultValue="" disabled={personas.length === 0}><option value="" disabled>{personas.length ? 'Pilih persona' : 'Buat suara terlebih dahulu'}</option>{personas.map((persona) => <option key={persona._id} value={persona._id}>{persona.name}</option>)}</select></Field>
         <Field label="Link referensi" hint="Tempel link jika ada; topik tetap boleh berbeda selama jembatannya jelas."><input name="referenceUrl" type="url" placeholder="https://... (opsional)" /></Field>
         <Field label="Judul referensi" hint="Boleh dikosongkan jika judul bisa dibaca dari link."><input name="referenceTitle" placeholder="Buku, artikel, repositori, atau produk" /></Field>
-        <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari sudut • ${progress.value}%` : 'Cari sudut dari link'}</button><p className="text-xs leading-5 text-slate-500">Saran akan mengisi topik dan judul; kamu tetap memegang kendali untuk mengeditnya.</p></div>
+        <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari sudut • ${progress.value}%` : 'Cari sudut dari link'}</button><p className="text-xs leading-5 text-slate-500">Saran mengisi titik awal. Pilih sudut lalu edit sebelum membuat draft.</p></div>
+        {suggestion && <AnglePicker suggestion={suggestion} value={angleTitle} onChange={(value) => { setAngleTitle(value); const form = formRef.current; if (form) setField(form, 'topic', value); }} />}
         <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Menyusun draft • ${progress.value}%` : 'Buat draft untuk review'}</button>{!personas.length && <p className="mt-2 text-sm text-amber-200">Buat minimal satu suara tulisan sebelum membuat draft.</p>}</div>
         {progress && <ProgressIndicator action={progress.action} value={progress.value} state={progress.state} message={progress.message} />}
       </form>
     </SectionCard>
   );
+}
+
+function AnglePicker({ suggestion, value, onChange }: { suggestion: NarrativeSuggestion; value: string; onChange: (value: string) => void }) {
+  const angles = [suggestion.recommendedAngle, ...suggestion.alternativeAngles];
+  const selected = angles.find((angle) => angle.title === value);
+  return <div className="md:col-span-2 rounded-xl border border-slate-700 bg-slate-950/60 p-3"><label className="text-sm font-medium text-slate-200" htmlFor="suggested-angle">Pilih sudut awal</label><select id="suggested-angle" className="mt-2" value={value} onChange={(event) => onChange(event.target.value)}>{angles.map((angle, index) => <option key={`${angle.title}-${index}`} value={angle.title}>{index === 0 ? 'Rekomendasi: ' : 'Alternatif: '}{angle.title}</option>)}</select><p className="mt-2 text-xs leading-5 text-slate-400">Keyakinan {Math.round((selected?.confidence ?? 0) * 100)}% · Dasar: {selected?.evidence.join(', ')}</p><p className="mt-1 text-xs leading-5 text-slate-400">{selected?.reason}</p></div>;
 }
 
 function optional(value: FormDataEntryValue | null) {

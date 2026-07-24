@@ -6,6 +6,14 @@ describe('reference preview', () => {
     expect(preview).toEqual({ host: 'example.com', title: 'Madilog & Nalar', description: 'Buku pemikiran' });
   });
 
+  it('extracts bounded commerce and publishing metadata without the page body', () => {
+    const html = `<meta property="og:title" content="Kemeja"><meta property="og:description" content="Katun"><meta property="og:type" content="product"><meta property="og:site_name" content="Shop"><meta property="article:author" content="Rico"><meta property="product:price:amount" content="150000"><meta property="product:price:currency" content="IDR"><link href="https://shop.example/kemeja" rel="canonical">SECRET BODY`;
+    const preview = extractReferenceMetadata(new URL('https://shop.example/item'), html);
+
+    expect(preview).toMatchObject({ type: 'product', siteName: 'Shop', author: 'Rico', price: '150000', currency: 'IDR', canonicalUrl: 'https://shop.example/kemeja' });
+    expect(JSON.stringify(preview)).not.toContain('SECRET BODY');
+  });
+
   it('rejects private address ranges', () => {
     expect(isPublicIp('127.0.0.1')).toBe(false);
     expect(isPublicIp('10.0.0.1')).toBe(false);

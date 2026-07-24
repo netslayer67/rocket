@@ -37,6 +37,12 @@ export class Narrative {
 
   @Prop()
   publishedAt?: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Knowledge' })
+  outcomeKnowledgeId?: Types.ObjectId;
+
+  @Prop()
+  outcomePromotedAt?: Date;
 }
 
 export const NarrativeSchema = SchemaFactory.createForClass(Narrative);

@@ -7,6 +7,7 @@ coverage
 *.log
 .env
 **/.env
+Executive Summary.pdf
 apps/crawler/.env
 apps/crawler/.venv/
 apps/crawler/.scrapy/

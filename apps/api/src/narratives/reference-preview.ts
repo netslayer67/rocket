@@ -2,7 +2,19 @@ import { BadRequestException } from '@nestjs/common';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
-export type ReferencePreview = { host: string; title: string; description: string };
+export type ReferencePreview = {
+  host: string;
+  title: string;
+  description: string;
+  type?: 'article' | 'product' | 'book' | 'video' | 'website';
+  siteName?: string;
+  author?: string;
+  section?: string;
+  publishedAt?: string;
+  price?: string;
+  currency?: string;
+  canonicalUrl?: string;
+};
 
 const MAX_BYTES = 80_000;
 const MAX_REDIRECTS = 3;
@@ -30,7 +42,17 @@ export async function fetchReferencePreview(input: string): Promise<ReferencePre
 export function extractReferenceMetadata(url: URL, html: string): ReferencePreview {
   const title = meta(html, 'og:title') || meta(html, 'twitter:title') || tag(html, 'title') || pathTitle(url) || url.hostname;
   const description = meta(html, 'og:description') || meta(html, 'description') || '';
-  return { host: url.hostname, title: clean(title).slice(0, 160), description: clean(description).slice(0, 360) };
+  const type = referenceType(meta(html, 'og:type'), html);
+  return {
+    host: url.hostname, title: clean(title).slice(0, 160), description: clean(description).slice(0, 360),
+    ...optional('type', type), ...optional('siteName', clean(meta(html, 'og:site_name')).slice(0, 120)),
+    ...optional('author', clean(meta(html, 'article:author') || meta(html, 'author')).slice(0, 120)),
+    ...optional('section', clean(meta(html, 'article:section')).slice(0, 120)),
+    ...optional('publishedAt', clean(meta(html, 'article:published_time')).slice(0, 40)),
+    ...optional('price', clean(meta(html, 'product:price:amount')).slice(0, 40)),
+    ...optional('currency', clean(meta(html, 'product:price:currency')).slice(0, 12)),
+    ...optional('canonicalUrl', canonical(html)),
+  };
 }
 
 export function isPublicIp(address: string) {
@@ -126,6 +148,31 @@ function tag(html: string, name: string) {
 
 function attribute(value: string, name: string) {
   return value.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'))?.[2] ?? '';
+}
+
+function referenceType(value: string, html: string): ReferencePreview['type'] {
+  const type = value.toLowerCase();
+  if (type.includes('product') || meta(html, 'product:price:amount')) return 'product';
+  if (type.includes('article') || meta(html, 'article:section') || meta(html, 'article:published_time')) return 'article';
+  if (type.includes('video')) return 'video';
+  if (type.includes('book')) return 'book';
+  if (type) return 'website';
+  return undefined;
+}
+
+function canonical(html: string) {
+  const value = html.match(/<link\b[^>]*>/gi)?.find((item) => /\brel\s*=\s*["'][^"']*canonical[^"']*["']/i.test(item));
+  const href = value ? attribute(value, 'href') : '';
+  try {
+    const url = new URL(href);
+    return ['http:', 'https:'].includes(url.protocol) ? url.toString().slice(0, 240) : '';
+  } catch {
+    return '';
+  }
+}
+
+function optional<T extends string>(key: string, value: T | undefined) {
+  return value ? { [key]: value } : {};
 }
 
 function pathTitle(url: URL) {

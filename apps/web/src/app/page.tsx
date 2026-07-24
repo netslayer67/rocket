@@ -39,7 +39,7 @@ export default function Home() {
         <NarrativeForm personas={studio.personas} busy={studio.busy} onGenerate={studio.generate} onSuggest={studio.suggestNarrative} />
       </section>
       <NarrativeQueue narratives={studio.narratives} busy={studio.busy} onApprove={studio.approve} onPublish={studio.publish} onFeedback={studio.submitFeedback} />
-      <AnalyticsPanel summary={studio.analytics} narratives={studio.narratives} busy={studio.busy} onCapture={studio.captureAnalytics} onRunLearning={studio.runLearning} />
+      <AnalyticsPanel summary={studio.analytics} insights={studio.insights} narratives={studio.narratives} busy={studio.busy} onCapture={studio.captureAnalytics} onRunLearning={studio.runLearning} onPromote={studio.promoteOutcome} />
     </main>
   );
 }

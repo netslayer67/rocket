@@ -19,6 +19,17 @@
 15. V1 learning is opt-in and idempotent: only explicitly approved structured feedback can create DNA, and a scheduler never publishes content.
 16. V1 analytics are operator-entered signals. Label them as manual and return null rates when views are zero; never invent platform measurements.
 
+## V2 audit guardrails
+
+The historical V2 readiness estimate is 62–65% overall (core retrieval infrastructure is further along). Treat the Executive Summary as a dated audit, not live status: verify claims against code, tests, and deployed behavior before changing architecture. Its accurate gaps are multi-angle reference discovery, evidence provenance, structured reviewer diagnosis, outcome-linked learning candidates, and model evaluation; Qdrant, SSE, OpenRouter orchestration, positive/negative DNA, and bounded manual crawlers already exist.
+
+17. V2 suggestions MUST expose a recommended angle plus bounded alternatives, confidence, reason, and evidence provenance while keeping fields editable.
+18. DNA learning is diagnosis-first: capture symptom, root cause, fix, dimensions, and evidence. Never turn persona vocabulary into a standalone blacklist or make one reasoning sequence mandatory.
+19. Analytics may propose an outcome-learning candidate, but promotion to DNA remains explicit and reviewable; preserve sample/provenance context, avoid causal claims, and never silently self-train or invent platform metrics.
+20. Ponytail ceiling: do not add an agent, queue, dependency, or service split for a single V2 slice. Reuse the existing service/orchestrator until a second independent source or measured bottleneck justifies extraction.
+21. Outcome promotion requires `approved: true`, a positive/negative lesson type, manual provenance, a diagnosis, and an idempotent narrative-to-DNA link. A manual sample is observational, never causal.
+22. Reference previews may expose bounded type, site, author, section, date, price, currency, and canonical metadata; omit absent values and never persist or log page bodies.
+
 ## OpenSpec workflow
 
 For a meaningful feature, behavior change, or architecture change:

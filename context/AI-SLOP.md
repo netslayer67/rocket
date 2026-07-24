@@ -116,3 +116,9 @@ Follow-up findings for the next UI pass:
 - Repeated `eyebrow` labels appear above multiple workflow headings. This is a known catalog hit (repeated section kickers) and should be removed or consolidated when those sections are next redesigned.
 - Summary cards are useful because they expose the creator's actual counts; they are not a marketing hero metric. Keep them only while they support a next decision.
 - The estimated progress bar communicates request state. If its animation is changed, prefer a transform-based implementation and retain the reduced-motion fallback.
+
+V2 angle selector review (2026-07-24): the Narrative Studio suggestion flow uses one native, labeled select inside the existing slate surface. It adds no gradient, glow, icon tile, dependency, or decorative motion; confidence/reason remains plain text and editable fields stay primary. Keyboard focus, semantic labels, status copy, mobile wrapping, contrast, and overflow were checked through the production build. No exception or rollback condition was needed.
+
+V2 outcome-candidate review (2026-07-24): the Analytics panel adds a restrained divider and text list only when manual candidates exist. It keeps sample size, source, and candidate status visible, avoids charts and decorative metrics, and preserves the existing labeled controls. Narrow wrapping, contrast, keyboard order, and no-motion behavior remain unchanged; no exception was needed.
+
+V2 outcome-promotion review (2026-07-24): promotion uses the existing compact candidate row, a native positive/negative select, and a browser confirmation before the explicit action. Promoted rows become text status only; no chart, badge wall, gradient, or motion was added. The control remains keyboard reachable and wraps on narrow screens; no exception was needed.
