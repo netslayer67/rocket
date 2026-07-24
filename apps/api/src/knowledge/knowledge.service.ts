@@ -6,6 +6,7 @@ import { ImportKnowledgeDto } from './dto/import-knowledge.dto';
 import { demoPattern, keywords, parsePattern, type KnowledgePattern } from './knowledge-pattern';
 import { Knowledge } from './schemas/knowledge.schema';
 import { VectorIndexService } from './vector-index.service';
+import type { AiRetrievalMetadata } from '../ai/ai.types';
 
 @Injectable()
 export class KnowledgeService {
@@ -63,21 +64,40 @@ SOURCE:\n${dto.content}`,
   }
 
   async findRelevant(topic: string) {
-    const semantic = await this.vectors.search(topic);
-    if (semantic.length) {
-      const records = await this.knowledge.find({ _id: { $in: semantic } }).lean();
-      const byId = new Map(records.map((record) => [String(record._id), record]));
-      const ordered = semantic.map((id) => byId.get(id)).filter((record): record is NonNullable<typeof record> => Boolean(record));
-      if (ordered.length) return ordered;
-    }
-    return this.lexicalFallback(topic);
+    return (await this.findRelevantWithMeta(topic)).records;
   }
 
-  private async lexicalFallback(topic: string) {
+  async findRelevantWithMeta(topic: string) {
+    const semanticResult = await this.vectors.searchWithStatus(topic);
+    const semanticRecords = await this.recordsByIds(semanticResult.ids);
+    const lexicalRecords = await this.lexicalMatches(topic);
+    const semanticIds = new Set(semanticRecords.map((record) => String(record._id)));
+    const lexicalOnly = lexicalRecords.filter((record) => !semanticIds.has(String(record._id)));
+    const recent = semanticRecords.length || lexicalOnly.length ? [] : await this.recentMatches();
+    const records = [...semanticRecords, ...lexicalOnly, ...recent].slice(0, 8);
+    const mode: AiRetrievalMetadata['mode'] = records.length
+      ? semanticRecords.length && lexicalOnly.length ? 'hybrid'
+        : semanticRecords.length ? 'semantic'
+          : lexicalOnly.length ? 'lexical-fallback' : recent.length ? 'recent-fallback' : 'empty'
+      : 'empty';
+    return { records, metadata: { mode, semanticCount: semanticRecords.length, lexicalCount: lexicalOnly.length, knowledgeIds: records.map((record) => String(record._id)).slice(0, 8) } satisfies AiRetrievalMetadata };
+  }
+
+  private async recordsByIds(ids: string[]) {
+    if (!ids.length) return [];
+    const records = await this.knowledge.find({ _id: { $in: ids } }).lean();
+    const byId = new Map(records.map((record) => [String(record._id), record]));
+    return ids.map((id) => byId.get(id)).filter((record): record is NonNullable<typeof record> => Boolean(record));
+  }
+
+  private async lexicalMatches(topic: string) {
     const words = keywords(topic);
-    const matches = words.length
+    return words.length
       ? await this.knowledge.find({ topics: { $in: words } }).sort({ createdAt: -1 }).limit(4).lean()
       : [];
-    return matches.length ? matches : this.knowledge.find().sort({ createdAt: -1 }).limit(3).lean();
+  }
+
+  private recentMatches() {
+    return this.knowledge.find().sort({ createdAt: -1 }).limit(3).lean();
   }
 }

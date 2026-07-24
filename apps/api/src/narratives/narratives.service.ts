@@ -33,7 +33,10 @@ export class NarrativesService {
     const persona = await this.personas.findById(dto.personaId);
     if (!persona) throw new NotFoundException('Persona tidak ditemukan');
     const reference = await this.resolveReference(dto);
-    const patterns = await this.knowledge.findRelevant(dto.topic);
+    const retrieval = this.knowledge.findRelevantWithMeta
+      ? await this.knowledge.findRelevantWithMeta(dto.topic)
+      : { records: await this.knowledge.findRelevant(dto.topic), metadata: { mode: 'empty' as const, semanticCount: 0, lexicalCount: 0, knowledgeIds: [] } };
+    const patterns = retrieval.records.length ? retrieval.records : await this.knowledge.findRelevant(dto.topic);
     const result = await this.ai.complete({
       task: 'narrative',
       system:
@@ -52,6 +55,7 @@ REUSABLE PATTERNS: ${JSON.stringify(patterns.map(patternContext))}
 Rules: the title must sound like a spoken thread opening, never a news/article headline. Start with a concrete first-person observation or another fitting human opening. Show a small uncertainty, story beat, question, or process of thought before concluding, but never force one sequence. Leave one specific tension or detail unresolved; do not force a broad closing question. Branch through real human concerns such as heat, guests, timing, discomfort, or a small worry before a reference appears; never take the shortest path from topic to product. Persona should guide the narrator's thinking, not force repeated vocabulary. Preferred shapes include Observe -> Wonder -> Hypothesis -> Reference -> Open Question, Question -> Discussion -> Reference, Experience -> Reflection -> Reference, and Fact -> Story -> Reference -> Humor; choose the one that fits. If a URL exists, mention the reference title or a distinctive part of it before the URL and explain the connection in that same thought. Never append a bare URL or write 'Referensi yang gue maksud'. If the topic and reference cannot be truthfully connected, shift to their real shared context; never use an unrelated reference. Never write marketplace listing language or unsupported garment specifications as fact. Use reference metadata only for clearly hedged inferences, never as invented firsthand experience. Never write 'klik sekarang', 'beli', 'promo', urgency claims, or an unverified person/product endorsement. Treat negative lessons or naturalness 2 or lower as diagnosed anti-patterns to avoid; treat positive lessons or naturalness 4 or higher as optional structural guidance and never copy their wording.`,
       maxTokens: 1100,
       json: true,
+      retrieval: retrieval.metadata,
     });
     const generated = result.mode === 'demo' ? demoNarrative(dto, persona, reference) : parseNarrative(result.content);
     onProgress?.('reviewing', 70, 'Memeriksa suara persona, konteks, dan posisi referensi.');

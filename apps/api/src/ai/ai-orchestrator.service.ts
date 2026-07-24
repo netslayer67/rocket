@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
-import { AiRequest, AiResult, EmbeddingResult } from './ai.types';
+import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
 
 type OpenRouterResponse = {
@@ -12,7 +12,7 @@ type OpenRouterResponse = {
 };
 
 type EmbeddingResponse = { data?: Array<{ embedding?: number[] }>; usage?: { prompt_tokens?: number } };
-type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'>;
+type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'> & { retrieval?: AiRetrievalMetadata };
 
 @Injectable()
 export class AiOrchestratorService {
@@ -32,7 +32,7 @@ export class AiOrchestratorService {
 
     if (cached) {
       const result = { ...cached, cached: true };
-      await this.log(request.task, inputHash, result);
+      await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval });
       return result;
     }
 
@@ -44,7 +44,7 @@ export class AiOrchestratorService {
         cached: false,
         mode: 'demo',
       };
-      await this.log(request.task, inputHash, result);
+      await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval });
       return result;
     }
 
@@ -89,7 +89,7 @@ export class AiOrchestratorService {
           outputTokens: body.usage?.completion_tokens,
         };
         this.cache.set(inputHash, result);
-        await this.log(request.task, inputHash, result);
+        await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval });
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
@@ -150,6 +150,7 @@ export class AiOrchestratorService {
       demo: result.mode === 'demo',
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,
+      ...(result.retrieval ? { retrieval: result.retrieval } : {}),
     });
   }
 }

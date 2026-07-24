@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import type { AiRetrievalMetadata } from '../ai.types';
 
 export type AiRunDocument = HydratedDocument<AiRun>;
 
@@ -25,6 +26,9 @@ export class AiRun {
 
   @Prop()
   outputTokens?: number;
+
+  @Prop({ type: Object })
+  retrieval?: AiRetrievalMetadata;
 }
 
 export const AiRunSchema = SchemaFactory.createForClass(AiRun);

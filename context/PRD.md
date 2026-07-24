@@ -35,7 +35,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 | --- | --- |
 | Persona | Store tone, vocabulary, sentence length, emoji habit, interaction style, and optional thinking/observation guidance. |
 | Knowledge | Extract hook, emotion, conflict, information gap, discussion, authority, CTA, naturalness, and pattern summary. |
-| Retrieval | Embed compact metadata, retrieve semantic matches from Qdrant, then fall back to lexical matching. |
+| Retrieval | Embed compact metadata, merge bounded semantic matches from Qdrant with lexical matches, then use recent patterns as a safe fallback. |
 | Narrative | Retrieve relevant patterns and generate a JSON draft through the orchestrator. |
 | Generation progress | Return a job ID, stream bounded server progress over SSE, persist the draft, then emit completion with the saved draft. |
 | Reference suggestion | Read transient public-link metadata and suggest an editable, broader discussion angle without inventing claims. |
@@ -45,7 +45,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 | Feedback learning | Store structured reviewer dimensions and create compact DNA only when approved for learning. |
 | Analytics | Capture manual metrics and derive CTR and engagement; label the source as manual. |
 | Crawl discovery | Crawl only a creator-approved public page with robots, domain, size, delay, and page limits; Nutch only discovers manually reviewed candidate URLs. |
-| Observability | Store model choice, cache hit, demo mode, and reported token usage. |
+| Observability | Store model choice, cache hit, demo mode, reported token usage, and bounded retrieval mode/IDs without prompts or source text. |
 
 ## Non-goals
 

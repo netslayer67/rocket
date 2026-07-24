@@ -41,7 +41,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 1. A user creates a persona.
 2. A source thread is submitted once for extraction; the raw body is not persisted.
 3. A compact metadata document is embedded through the orchestrator and indexed in Qdrant.
-4. Knowledge retrieval selects semantic matches, then falls back to lexical patterns.
+4. Knowledge retrieval merges bounded semantic matches with lexical topic matches, deduplicates Mongo IDs, and uses recent patterns only when both query paths are empty.
 5. A creator can optionally request a transient public-link preview that returns metadata and an editable topic suggestion through the AI Orchestrator.
 6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft.
 7. The API persists a compact job record and returns a job ID. The SSE request replays `queued`, claims the job once, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft. This works across Vercel function instances without adding a queue.
@@ -61,7 +61,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 - Reference-preview HTML is transient; only creator-selected narrative fields are stored.
 - A narrative stays `draft` until a person approves it; publishing is a separate explicit action.
 - The SSE `complete` event is emitted only after the draft is persisted; job payload/events are compact, Mongo-backed, and bounded.
-- AI model, caching, and token usage are logged in `AiRun`.
+- AI model, caching, token usage, and compact retrieval mode/IDs are logged in `AiRun`; prompts, vectors, and source text are excluded.
 - A failed semantic index marks a record `pending`; it never blocks metadata import.
 - Threads email, password, and plaintext access tokens are never persisted or returned by the API.
 - Feedback must be explicitly approved for learning; a learning run never publishes content.

@@ -9,6 +9,7 @@ type VectorResult = { status: 'ready' | 'pending'; embeddingModel?: string };
 type CollectionResponse = { result?: { config?: { params?: { vectors?: { size?: number } } } } };
 type QueryPoint = { payload?: { knowledgeId?: unknown } };
 type QueryResponse = { result?: { points?: QueryPoint[] } | QueryPoint[] };
+export type VectorSearchResult = { ids: string[]; failed: boolean };
 
 @Injectable()
 export class VectorIndexService {
@@ -30,6 +31,10 @@ export class VectorIndexService {
   }
 
   async search(topic: string) {
+    return (await this.searchWithStatus(topic)).ids;
+  }
+
+  async searchWithStatus(topic: string): Promise<VectorSearchResult> {
     try {
       const embedding = await this.ai.embed(topic, 'search_query');
       await this.ensureCollection(embedding.vector.length);
@@ -38,10 +43,10 @@ export class VectorIndexService {
       });
       const result = body.result;
       const points = Array.isArray(result) ? result : result?.points ?? [];
-      return points.map((point) => point.payload?.knowledgeId).filter((id): id is string => typeof id === 'string');
+      return { ids: points.map((point) => point.payload?.knowledgeId).filter((id): id is string => typeof id === 'string'), failed: false };
     } catch (error) {
       console.warn('Knowledge vector search failed', safeError(error));
-      return [];
+      return { ids: [], failed: true };
     }
   }
 

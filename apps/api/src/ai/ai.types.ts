@@ -6,7 +6,15 @@ export interface AiRequest {
   prompt: string;
   maxTokens: number;
   json?: boolean;
+  retrieval?: AiRetrievalMetadata;
 }
+
+export type AiRetrievalMetadata = {
+  mode: 'hybrid' | 'semantic' | 'lexical-fallback' | 'recent-fallback' | 'empty';
+  semanticCount: number;
+  lexicalCount: number;
+  knowledgeIds: string[];
+};
 
 export interface AiResult {
   content: string;

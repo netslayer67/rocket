@@ -8,7 +8,7 @@ MongoDB is the V2 source of truth. Mongoose schemas define the runtime shape; Qd
 | `knowledge` | V1 fields plus `conflict`, `persona`, `style`, `vocabulary`, `informationGap`, `discussionPattern`, `authorityType`, `ctaStyle`, `naturalness`, optional `lessonType`, `diagnosis`, `rootCause`, `recommendedFix`, `failureDimensions`, `evidenceSources`, `vectorStatus`, `embeddingModel` | Stores diagnosis-rich narrative DNA, never raw source text. |
 | `narratives` | `topic`, `personaId`, `referenceTitle`, `referenceUrl`, `title`, `body`, `linkPlacement`, `reviewerNotes`, `status`, optional `publishedThreadId`, `publishedAt` | Stores reviewable output and manual publication result. |
 | `jobs` | `jobId`, `payload`, ordered compact `events`, optional `startedAt`, `completedAt` | Shares bounded narrative-generation progress across serverless API instances; never stores raw imported source text or credentials. |
-| `airuns` | `task`, `model`, `inputHash`, `cached`, `demo`, `inputTokens`, `outputTokens` | Records AI routing and usage decisions. |
+| `airuns` | `task`, `model`, `inputHash`, `cached`, `demo`, `inputTokens`, `outputTokens`, optional `retrieval.mode`, candidate counts, bounded `knowledgeIds` | Records AI routing, usage, and compact knowledge-retrieval decisions. |
 | `threadsconnections` | `key`, `accountId`, encrypted token fields, `expiresAt`, `connectedAt` | Stores one OAuth connection; no email, password, or plaintext token. |
 | `feedback` | `narrativeId`, `lessonType`, bounded `scores`, `notes`, `approvedForLearning`, optional `learnedAt`, `knowledgeId` | Stores structured reviewer diagnosis, never imported source text. |
 | `learninglogs` | `feedbackId`, `knowledgeId`, `status`, `error` | Makes feedback learning idempotent and observable. |
