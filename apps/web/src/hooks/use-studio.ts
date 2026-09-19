@@ -115,7 +115,6 @@ export function useStudio() {
     submitFeedback: (input: FeedbackInput) => run(() => api('/feedback', { method: 'POST', body: JSON.stringify(input) }), 'Feedback tersimpan; DNA diperbarui bila diizinkan.'),
     captureAnalytics: (input: AnalyticsInput) => run(() => api('/analytics', { method: 'POST', body: JSON.stringify(input) }), 'Metrik tersimpan.'),
     promoteOutcome: (narrativeId: string, lessonType: 'positive' | 'negative') => run(() => api(`/analytics/insights/${narrativeId}/promote`, { method: 'POST', body: JSON.stringify({ approved: true, lessonType }) }), 'Kandidat outcome dipromosikan menjadi DNA.'),
-    runLearning: () => run(() => api('/learning/run', { method: 'POST' }), 'Learning run selesai.'),
     disconnectThreads: () => run(() => api('/threads/connection', { method: 'DELETE' }), 'Akun Threads diputus dari Rocket Project.'),
   };
 }

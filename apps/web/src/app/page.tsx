@@ -21,7 +21,7 @@ export default function Home() {
           <h1 className="mt-4 max-w-xl break-words text-3xl font-bold tracking-tight text-white sm:text-4xl">Buat draft yang terdengar seperti kamu.</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-slate-400">Siapkan suara tulisan, tambahkan pola yang ingin dipelajari, lalu buat draft untuk kamu review sebelum publish.</p>
         </div>
-        <div className="flex min-w-0 w-full flex-col gap-3 lg:w-auto lg:items-end"><button className="button-secondary" disabled={studio.busy} onClick={() => void studio.refresh()}>Segarkan data</button><p role="status" aria-live="polite" className="min-h-5 text-sm text-slate-400 lg:text-right">{studio.message || 'Data studio siap digunakan.'}</p></div>
+        <div className="flex min-w-0 w-full flex-col gap-3 lg:w-auto lg:items-end"><div className="flex flex-wrap gap-2"><a href="/monitoring" className="button-secondary">Monitoring</a><button className="button-secondary" disabled={studio.busy} onClick={() => void studio.refresh()}>Segarkan data</button></div><p role="status" aria-live="polite" className="min-h-5 text-sm text-slate-400 lg:text-right">{studio.message || 'Data studio siap digunakan.'}</p></div>
       </header>
 
       <div className="mt-6"><Overview personas={studio.personas} knowledge={studio.knowledge} narratives={studio.narratives} /></div>
@@ -39,7 +39,7 @@ export default function Home() {
         <NarrativeForm personas={studio.personas} busy={studio.busy} onGenerate={studio.generate} onSuggest={studio.suggestNarrative} />
       </section>
       <NarrativeQueue narratives={studio.narratives} busy={studio.busy} onApprove={studio.approve} onPublish={studio.publish} onFeedback={studio.submitFeedback} />
-      <AnalyticsPanel summary={studio.analytics} insights={studio.insights} narratives={studio.narratives} busy={studio.busy} onCapture={studio.captureAnalytics} onRunLearning={studio.runLearning} onPromote={studio.promoteOutcome} />
+      <AnalyticsPanel summary={studio.analytics} insights={studio.insights} narratives={studio.narratives} busy={studio.busy} onCapture={studio.captureAnalytics} onPromote={studio.promoteOutcome} />
     </main>
   );
 }

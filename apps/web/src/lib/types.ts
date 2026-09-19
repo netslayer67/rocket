@@ -68,3 +68,7 @@ export type FeedbackInput = { narrativeId: string; lessonType: 'positive' | 'neg
 export type AnalyticsSummary = { source: string; records: number; views: number; clicks: number; likes: number; replies: number; reposts: number; quotes: number; ctr: number | null; engagementRate: number | null };
 export type AnalyticsInsight = { narrativeId: string; title: string; topic: string; linkPlacement: string; views: number; clicks: number; likes: number; replies: number; reposts: number; quotes: number; samples: number; ctr: number | null; engagementRate: number | null; source: string; status: 'candidate' | 'promoted' };
 export type AnalyticsInput = { narrativeId: string; views: number; clicks: number; likes: number; replies: number; reposts: number; quotes: number };
+export type MonitoringKind = 'job' | 'model' | 'feedback' | 'learning' | 'knowledge' | 'analytics';
+export type MonitoringEvent = { id: string; kind: MonitoringKind; agent: string; model?: string; status: string; label: string; occurredAt: string; details?: Record<string, string | number | boolean | null> };
+export type MonitoringSnapshot = { source: 'persisted metadata'; windowStart: string; generatedAt: string; events: MonitoringEvent[]; summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> } };
+export type MonitoringStreamEvent = { at?: string; source?: string; message?: string } | MonitoringSnapshot;

@@ -8,8 +8,11 @@ import { PersonasModule } from './personas/personas.module';
 import { ThreadsModule } from './threads/threads.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { HealthController } from './health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ envFilePath: ['apps/api/.env', '.env'], isGlobal: true }),
     MongooseModule.forRootAsync({
@@ -26,6 +29,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     ThreadsModule,
     FeedbackModule,
     AnalyticsModule,
+    MonitoringModule,
   ],
 })
 export class AppModule {}

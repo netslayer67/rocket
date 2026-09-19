@@ -3,9 +3,7 @@
 ## Purpose
 
 Summarize operator-entered outcomes as reviewable signals without silently converting them into DNA.
-
 ## Requirements
-
 ### Requirement: Reviewable outcome candidates
 The system SHALL aggregate bounded manual analytics by narrative and return outcome candidates containing measured views, clicks, CTR, engagement rate, sample size, link placement, and status `candidate` or `promoted`. Candidates SHALL NOT be promoted to DNA automatically; promotion requires an explicit typed approval.
 
@@ -19,7 +17,11 @@ The system SHALL aggregate bounded manual analytics by narrative and return outc
 
 #### Scenario: Candidate is shown to the operator
 - **WHEN** the analytics panel requests insights
-- **THEN** it displays the manual source and candidate status, with no claim of causation or automatic learning
+- **THEN** it displays the manual source and candidate status, with no claim of causation or automatic DNA learning
+
+#### Scenario: Automatic-learning boundary is shown
+- **WHEN** the analytics panel displays learning guidance
+- **THEN** it distinguishes automatically learned approved feedback from outcome candidates that still require review and explicit promotion
 
 #### Scenario: Candidate is explicitly promoted
 - **WHEN** the operator approves a positive or negative lesson decision

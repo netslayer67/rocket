@@ -20,7 +20,7 @@ The dashboard SHALL present the V1 workflow in the order orientation, persona, k
 
 ### Requirement: Accessible input and feedback
 
-The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, estimated progress for pending narrative-form actions, server-reported progress for narrative generation, an immediately visible confirmed draft after generation, and an anti-slop review for any materially changed UI surface. Supporting copy SHALL explain the purpose and next step once, without abstract marketing language.
+The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, estimated progress for pending narrative-form actions, server-reported progress for narrative generation, an immediately visible confirmed draft after generation, plain-language learning-boundary guidance in the analytics panel, and an anti-slop review for any materially changed UI surface. Supporting copy SHALL explain the purpose and next step once, without abstract marketing language.
 
 #### Scenario: Creator cannot generate yet
 
@@ -51,6 +51,11 @@ The dashboard SHALL provide visible labels for inputs, text-based status, clear 
 
 - **WHEN** the SSE stream emits an error or closes before completion
 - **THEN** the dashboard stops the pending state, reports a readable error, and leaves existing drafts unchanged
+
+#### Scenario: Creator reads learning guidance
+
+- **WHEN** the creator opens the analytics panel
+- **THEN** it explains that explicitly approved feedback is learned automatically, outcome candidates still need explicit promotion, and no manual learning trigger is displayed
 
 #### Scenario: Creator reviews a changed surface
 

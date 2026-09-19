@@ -13,5 +13,6 @@ import { LearningLog, LearningLogSchema } from './schemas/learning-log.schema';
     { name: Feedback.name, schema: FeedbackSchema }, { name: LearningLog.name, schema: LearningLogSchema }, { name: Narrative.name, schema: NarrativeSchema },
   ])],
   controllers: [FeedbackController], providers: [FeedbackService, LearningService],
+  exports: [LearningService],
 })
 export class FeedbackModule {}

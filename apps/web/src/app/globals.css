@@ -15,4 +15,19 @@
   .button-secondary { @apply inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors ease-out hover:border-slate-500 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto; }
   .section-card { @apply min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-6; }
   .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.16em] text-cyan-400; }
+  .neural-path { vector-effect: non-scaling-stroke; transition: stroke 300ms ease-out, stroke-opacity 300ms ease-out; }
+  .neural-path-active { animation: neural-flow 2.8s linear infinite; }
+  .neural-node-active { animation: neural-node 1.8s ease-out infinite alternate; }
+}
+
+@keyframes neural-flow {
+  to { stroke-dashoffset: -12; }
+}
+
+@keyframes neural-node {
+  to { transform: translate(-50%, calc(-50% - 2px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neural-path-active, .neural-node-active { animation: none; }
 }

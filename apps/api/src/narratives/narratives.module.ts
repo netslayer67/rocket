@@ -24,5 +24,6 @@ import { NarrativeJob, NarrativeJobSchema } from './schemas/narrative-job.schema
   ],
   controllers: [NarrativesController],
   providers: [NarrativesService, NarrativeJobService, NarrativeJobRunner],
+  exports: [NarrativeJobService],
 })
 export class NarrativesModule {}

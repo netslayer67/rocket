@@ -132,6 +132,23 @@ Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
 
 Production secrets are managed by Vercel. Never commit `.env` files, access tokens, app secrets, encryption keys, or private source material.
 
+## Railway API for continuous learning
+
+The repository includes [Railway configuration](railway.json) for one persistent `@rocket/api` service. It reuses the existing `LearningService`: approved feedback is learned immediately and any approved backlog is checked every 60 seconds. It does not create a second worker, queue, auto-publish content, or convert manual analytics into DNA automatically.
+
+Before cutover, connect the repository in Railway, keep **one replica** on a plan that does not sleep the service, and enter the existing server-only API variables in Railway. Do not copy them into the repository. For continuous learning, set:
+
+```text
+LEARNING_SCHEDULER_ENABLED=true
+LEARNING_INTERVAL_MS=60000
+WEB_ORIGIN=https://rocket-web-five.vercel.app
+CORS_ORIGINS=https://rocket-web-five.vercel.app
+```
+
+After Railway generates an API domain, verify `GET /health` and a read-only route such as `/threads/status`. Then set Vercel's `NEXT_PUBLIC_API_URL` to the Railway origin **without** `/api`, for example `https://rocket-api-production.up.railway.app`. Set Railway's `THREADS_REDIRECT_URI` to `https://<railway-domain>/threads/callback` and register that same callback in Meta before reconnecting Threads.
+
+Keep the current Vercel API URL and cron configuration until the Railway API, CORS, Threads callback, and learning activity have been verified. To roll back, restore Vercel's previous `NEXT_PUBLIC_API_URL` (which includes `/api`) and leave Vercel Cron enabled.
+
 ## Knowledge and reference safety
 
 Knowledge records contain narrative DNA: hooks, emotions, conflict, information gaps, discussion patterns, diagnoses, root causes, fixes, dimensions, and evidence provenance. Qdrant stores only the derived vector representation.
