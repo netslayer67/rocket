@@ -23,7 +23,7 @@ Affected apps are `apps/api` and the Vercel-hosted `apps/web`; no MongoDB schema
 - **Run the NestJS API itself as the persistent service.** Its existing scheduler starts with the API process, so a second worker service would duplicate infrastructure and violate the project Ponytail ceiling. A single Railway replica is required for this V1 interval; the existing learning log remains the durable idempotency record.
 - **Use a 60-second interval through Railway variables.** The existing service already clamps intervals to at least 60 seconds. This is near-realtime while bounding database and embedding work; feedback approved in its create request still learns immediately through the current path.
 - **Add `GET /health` rather than reuse a domain route.** The simple route proves that Nest has started without exposing account state or triggering learning. Railway waits for it before routing the deployment.
-- **Keep configuration in `railway.json` at the repository root.** This is a shared npm workspace, so its build and start commands run from the root with the API workspace selected. Railway's Vercel-facing frontend is not imported as a second Railway service.
+- **Match commands to Railway's `apps/api` root directory.** Railway runs `npm run build` and `npm run start:prod` directly from that package, avoiding workspace flags that are valid only at the repository root. Railway's Vercel-facing frontend is not imported as a second Railway service.
 - **Keep Vercel configuration untouched for rollback.** After Railway receives a public domain, `NEXT_PUBLIC_API_URL`, `WEB_ORIGIN`, `CORS_ORIGINS`, and the Threads callback must be changed deliberately. Secrets are entered only in Railway/Vercel settings, never committed.
 
 ## Risks / Trade-offs
