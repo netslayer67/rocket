@@ -16,6 +16,7 @@ export type MonitoringSnapshot = {
   windowStart: string;
   generatedAt: string;
   events: MonitoringEvent[];
+  learning?: Awaited<ReturnType<AutonomousLearningService['status']>>;
   summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> };
 };
 
@@ -43,6 +44,12 @@ export function learningEvent(record: Timestamped & { status: string }): Monitor
   return event(String(record._id), 'learning', 'Learning Agent', record.status, `DNA learning ${record.status}`, record.createdAt);
 }
 
+export function cycleEvent(record: Timestamped & LearningCycle): MonitoringEvent {
+  return event(`cycle:${record._id}`, 'learning', 'Learning Agent', record.phase,
+    `Internal learning ${record.phase}`, record.updatedAt ?? record.createdAt,
+    { reason: record.reason, evidenceCount: record.evidenceIds.length, knowledgeId: record.knowledgeId ?? null });
+}
+
 export function knowledgeEvent(record: Timestamped & { lessonType?: string; vectorStatus?: string }): MonitoringEvent {
   const status = record.vectorStatus ?? 'pending';
   return event(String(record._id), 'knowledge', 'Knowledge Agent', status, `${record.lessonType ?? 'pattern'} DNA`, record.updatedAt ?? record.createdAt);
@@ -59,8 +66,11 @@ function event(id: string, kind: MonitoringKind, agent: string, status: string, 
 }
 
 function agentForTask(task: string) {
+  if (task.startsWith('internal-learning')) return 'Learning Agent';
   if (task.includes('knowledge') || task.includes('embedding')) return 'Knowledge Agent';
   if (task.includes('reference')) return 'Reference Agent';
   if (task.includes('review')) return 'Reviewer Agent';
   return 'Narrative Agent';
 }
+import type { AutonomousLearningService } from '../feedback/autonomous-learning.service';
+import type { LearningCycle } from '../feedback/schemas/learning-cycle.schema';

@@ -70,5 +70,10 @@ export type AnalyticsInsight = { narrativeId: string; title: string; topic: stri
 export type AnalyticsInput = { narrativeId: string; views: number; clicks: number; likes: number; replies: number; reposts: number; quotes: number };
 export type MonitoringKind = 'job' | 'model' | 'feedback' | 'learning' | 'knowledge' | 'analytics';
 export type MonitoringEvent = { id: string; kind: MonitoringKind; agent: string; model?: string; status: string; label: string; occurredAt: string; details?: Record<string, string | number | boolean | null> };
-export type MonitoringSnapshot = { source: 'persisted metadata'; windowStart: string; generatedAt: string; events: MonitoringEvent[]; summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> } };
+export type LearningStatus = {
+  enabled: boolean; phase: string; reason: string; lastCheck?: string; nextCheck?: string;
+  sourceCount: number; attemptsToday: number; dailyLimit: number; freeOnly: boolean;
+  latest?: { phase: string; reason: string; createdAt: string; finishedAt?: string; knowledgeId?: string; models: string[]; evidenceIds: string[] } | null;
+};
+export type MonitoringSnapshot = { source: 'persisted metadata'; windowStart: string; generatedAt: string; events: MonitoringEvent[]; learning?: LearningStatus; summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> } };
 export type MonitoringStreamEvent = { at?: string; source?: string; message?: string } | MonitoringSnapshot;

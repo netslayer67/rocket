@@ -39,11 +39,11 @@ SOURCE:\n${dto.content}`,
     return this.knowledge.find().sort({ createdAt: -1 }).limit(30).lean();
   }
 
-  async createLesson(input: { sourceLabel: string; sourceUrl?: string } & KnowledgePattern) {
+  async createLesson(input: { sourceLabel: string; sourceUrl?: string } & KnowledgePattern, freeOnly = false) {
     const existing = await this.knowledge.findOne({ sourceLabel: input.sourceLabel });
     if (existing) return existing;
     const record = await this.knowledge.create(input);
-    const indexed = await this.vectors.index(record);
+    const indexed = await this.vectors.index(record, freeOnly);
     record.vectorStatus = indexed.status;
     record.embeddingModel = indexed.embeddingModel;
     await record.save();
@@ -61,6 +61,22 @@ SOURCE:\n${dto.content}`,
       result.status === 'ready' ? indexed++ : pending++;
     }
     return { total: records.length, indexed, pending };
+  }
+
+  async createAutonomousLesson(pattern: KnowledgePattern, learningKey: string, evidenceIds: string[]) {
+    const record = await this.knowledge.findOneAndUpdate({ learningKey }, { $setOnInsert: {
+      ...pattern, sourceLabel: `Internal synthesis ${learningKey.slice(0, 16)}`, learningKey, evidenceIds, origin: 'autonomous',
+    } }, { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true });
+    if (record.vectorStatus === 'ready') return record;
+    const indexed = await this.vectors.index(record, true);
+    record.vectorStatus = indexed.status;
+    record.embeddingModel = indexed.embeddingModel;
+    await record.save();
+    return record;
+  }
+
+  findAutonomousLesson(learningKey: string) {
+    return this.knowledge.findOne({ learningKey }).lean();
   }
 
   async findRelevant(topic: string) {

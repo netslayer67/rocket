@@ -15,6 +15,7 @@ function service(data: { jobs?: unknown[]; one?: unknown; runs?: unknown[] } = {
     model([]) as never, model([]) as never, model([]) as never,
     { reindex: jest.fn() } as never, { runPending: jest.fn() } as never,
     { create: jest.fn() } as never, { get: jest.fn((_: string, fallback: string) => fallback) } as never,
+    { status: async () => ({ enabled: true, phase: 'waiting', reason: 'insufficient_evidence' }), recentCycles: async () => [] } as never,
   );
 }
 
@@ -23,11 +24,20 @@ describe('MonitoringService', () => {
     const result = await service().history();
     expect(result.events).toEqual([]);
     expect(result.source).toBe('persisted metadata');
+    expect(result.learning?.phase).toBe('waiting');
   });
 
   it('emits activity first and heartbeats without changing activity state', async () => {
     const events: string[] = [];
     const subscription = service({ jobs: [{ _id: 'id', jobId: 'job', createdAt: new Date(), updatedAt: new Date(), events: [{ sequence: 1, type: 'generating', data: { progress: 40 } }] }] }).events().subscribe((event) => events.push(event.type ?? 'unknown'));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    subscription.unsubscribe();
+    expect(events[0]).toBe('activity');
+  });
+
+  it('emits an initial scheduler snapshot even without persisted events', async () => {
+    const events: string[] = [];
+    const subscription = service().events().subscribe((event) => events.push(event.type ?? 'unknown'));
     await new Promise((resolve) => setTimeout(resolve, 20));
     subscription.unsubscribe();
     expect(events[0]).toBe('activity');

@@ -22,7 +22,7 @@ export class LearningService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     if (this.config.get<string>('LEARNING_SCHEDULER_ENABLED') !== 'true') return;
     const interval = Number(this.config.get<string>('LEARNING_INTERVAL_MS', '86400000'));
-    this.timer = setInterval(() => void this.runPending(), Math.max(interval, 60000));
+    this.timer = setInterval(() => void this.runPending().catch(() => console.warn('Approved feedback check failed')), Math.max(interval, 60000));
     this.timer.unref();
   }
 
@@ -59,12 +59,12 @@ export class LearningService implements OnModuleInit, OnModuleDestroy {
         diagnosis: item.notes?.slice(0, 700) || `Dimensi terlemah: ${weakest.dimension} (${weakest.score}/10)`,
         rootCause: `Review score terendah ada pada ${weakest.dimension}.`, recommendedFix: fixFor(weakest.dimension),
         failureDimensions: item.lessonType === 'negative' ? [weakest.dimension] : [], evidenceSources: ['reviewer-feedback'],
-      });
+      }, true);
       await this.feedback.updateOne({ _id: item._id }, { learnedAt: new Date(), knowledgeId: lesson._id });
       await this.logs.create({ feedbackId: item._id, knowledgeId: lesson._id, status: 'complete' });
       return 'processed' as const;
-    } catch (error) {
-      await this.logs.create({ feedbackId: item._id, status: 'failed', error: String(error).slice(0, 300) });
+    } catch {
+      await this.logs.create({ feedbackId: item._id, status: 'failed', error: 'Approved feedback processing failed' });
       return 'failed' as const;
     }
   }

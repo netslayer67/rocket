@@ -52,6 +52,17 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 12. An operator can enter observed metrics to derive CTR and engagement; a read-only insights endpoint groups bounded rows into manual outcome candidates, and an explicit approval endpoint promotes one candidate through KnowledgeService into diagnosis-first DNA. No automatic promotion or causal claim is made.
 13. An operator can manually crawl a creator-selected public URL with Scrapy; its transient text enters the existing knowledge-import flow.
 14. An operator can manually run Nutch to discover bounded same-domain URLs, then individually choose a URL for Scrapy import.
+15. The Railway API autonomously checks approved internal evidence every five minutes without browser traffic. At most six records of each source type enter one fingerprinted batch. A free model synthesizes one diagnosis; a second free-model call checks grounding, novelty and context. Accepted metadata is saved once with source IDs and reused by existing retrieval, with a provisional-synthesis caveat in narrative prompts. Drafts, raw imported bodies, autonomous DNA inputs, publishing, and analytics candidates are excluded.
+
+## Autonomous learning operations
+
+`AutonomousLearningService` lives in the existing feedback module, not a separate service or queue. It is enabled by default when `RAILWAY_ENVIRONMENT_ID` exists (and not Vercel), otherwise requires `AUTONOMOUS_LEARNING_ENABLED=true`. Explicit `false` is the kill switch. Keep **one API replica** and Railway sleeping disabled; the in-process overlap guard and daily quota are not distributed scheduling guarantees.
+
+Durable `LearningCycle` claims allow at most four attempts per UTC day, two per evidence fingerprint per day, with fifteen-minute failure backoff. Unchanged completed/rejected batches are skipped; failed batches can retry the next day. Abandoned stages are marked failed after fifteen minutes, and a lesson saved before interruption is recovered by its unique key without another AI call. The recent-six window is a coverage ceiling, not a full-corpus learning claim.
+
+All autonomous completions and embeddings are free-only (zero-price provider routing, at most three chat fallbacks, 30-second model timeouts). Paid embedding configuration leaves the index pending. A single attempt can make at most six chat requests and one embedding request; four attempts cap this path at 28 requests/day, separate from interactive API usage. Model agreement is not empirical quality evaluation or weight training. There is no claim of perfection or guaranteed growth on unchanged data.
+
+`GET /monitoring/history` and read-only SSE expose `learning.enabled`, phase, reason, last/next check, bounded input count, daily attempts and latest durable result. A heartbeat means connection health only. Last/next check are process-local timestamps, while attempts and outcomes survive restarts.
 
 ## Invariants
 
@@ -71,4 +82,4 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 
 ## Deferred architecture
 
-BullMQ/Redis queues, durable retries/scheduling, platform analytics ingestion, replies, token refresh jobs, and trend analysis belong to V2–V5. V1 job replay is Mongo-backed but intentionally lacks queue semantics. V1 analytics are manual capture and its learning timer is single-process only. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.
+BullMQ/Redis queues, distributed durable scheduling, platform analytics ingestion, replies, token refresh jobs, and trend analysis remain deferred. V1 job replay is Mongo-backed but intentionally lacks queue semantics. Internal-learning attempts are durable but scheduling and daily-cap coordination remain single-process. Analytics are manual capture. Automated crawling needs a reviewed queue and stronger network isolation before it can be considered.

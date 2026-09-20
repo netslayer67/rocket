@@ -28,14 +28,14 @@ export function useMonitoring() {
       if (stopped.current) return;
       setStatus('connecting');
       source = new EventSource(`${apiUrl}/monitoring/events`);
-      source.onopen = () => { setStatus('live'); setMessage('Menunggu aktivitas backend yang nyata.'); };
+      source.onopen = () => { setStatus('live'); setMessage('Koneksi monitoring aktif. Status belajar ditampilkan terpisah.'); };
       source.addEventListener('activity', (event) => { setSnapshot(JSON.parse((event as MessageEvent<string>).data) as MonitoringSnapshot); setStatus('live'); setMessage('Aktivitas backend diterima.'); });
-      source.addEventListener('heartbeat', (event) => { const value = JSON.parse((event as MessageEvent<string>).data) as MonitoringStreamEvent; setStatus('live'); setMessage(`Stream aktif hingga ${new Date((value as { at: string }).at).toLocaleTimeString()}.`); });
+      source.addEventListener('heartbeat', (event) => { const value = JSON.parse((event as MessageEvent<string>).data) as MonitoringStreamEvent; setStatus('live'); setMessage(`Koneksi diperiksa ${new Date((value as { at: string }).at).toLocaleTimeString()}. Bukan event belajar.`); });
       source.onerror = () => {
         source?.close();
         if (stopped.current) return;
         setStatus('reconnecting');
-        setMessage('Stream serverless selesai; mencoba koneksi baru.');
+        setMessage('Menghubungkan ulang monitoring. Worker API berjalan terpisah dari koneksi halaman.');
         reconnect = setTimeout(connect, 1500);
       };
     };

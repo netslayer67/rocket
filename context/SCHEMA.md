@@ -12,6 +12,7 @@ MongoDB is the V2 source of truth. Mongoose schemas define the runtime shape; Qd
 | `threadsconnections` | `key`, `accountId`, encrypted token fields, `expiresAt`, `connectedAt` | Stores one OAuth connection; no email, password, or plaintext token. |
 | `feedback` | `narrativeId`, `lessonType`, bounded `scores`, `notes`, `approvedForLearning`, optional `learnedAt`, `knowledgeId` | Stores structured reviewer diagnosis, never imported source text. |
 | `learninglogs` | `feedbackId`, `knowledgeId`, `status`, `error` | Makes feedback learning idempotent and observable. |
+| `learningcycles` | `fingerprint`, UTC `day`, `attempt`, `phase`, fixed `reason`, `evidenceIds`, `models`, optional `knowledgeId`, timestamps | Durable autonomous attempt claims and results; no evidence bodies, prompts, candidate text or provider errors. |
 | `analytics` | `narrativeId`, metric counters, derived `ctr`, `engagementRate`, `capturedAt` | Stores manually captured outcome signals; grouped learning candidates are derived on read. |
 
 ## Relationships
@@ -28,6 +29,8 @@ ThreadsConnection 1 ─── 1 local creator account (V2 single-account boundar
 
 - `knowledge.topics + createdAt` supports the V1 lexical retrieval query.
 - `knowledge.vectorStatus + createdAt` identifies records needing reindexing.
+- `knowledge.learningKey` is sparse and unique for autonomous batch-to-DNA idempotence. Such records have `origin: autonomous` and bounded `evidenceIds`, are excluded from synthesis inputs, and retain a provisional caveat when used for generation.
+- `learningcycles.fingerprint + day + attempt` is unique; `day` supports daily limits and `createdAt` supports history.
 - MongoDB creates the default `_id` index for every collection.
 
 ## Data retention

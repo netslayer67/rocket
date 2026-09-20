@@ -16,7 +16,7 @@
 12. Narrative reviewer rules must diagnose context, evidence, and reasoning; a vocabulary term alone is never a blocking reason.
 13. Knowledge DNA records should include lesson type, diagnosis, root cause, recommended fix, failure dimensions, and evidence sources when known. Store metadata only.
 14. Preferred narrative flows are optional guidance. Keep alternate shapes valid so generation does not converge on one recognizable template.
-15. V1 learning is opt-in and idempotent: only explicitly approved structured feedback can create DNA, and a scheduler never publishes content.
+15. Feedback learning is opt-in and idempotent. The creator-authorized autonomous internal mode can additionally consolidate approved feedback, non-autonomous DNA, and approved narratives after model review. It must preserve evidence provenance, free-only routing, bounded attempts, and exclusion of its own outputs; a scheduler never publishes content. This scoped consent does not authorize analytics promotion or crawling.
 16. V1 analytics are operator-entered signals. Label them as manual and return null rates when views are zero; never invent platform measurements.
 
 ## V2 audit guardrails

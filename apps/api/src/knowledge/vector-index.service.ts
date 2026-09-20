@@ -15,9 +15,9 @@ export type VectorSearchResult = { ids: string[]; failed: boolean };
 export class VectorIndexService {
   constructor(private readonly config: ConfigService, private readonly ai: AiOrchestratorService) {}
 
-  async index(knowledge: IndexedKnowledge): Promise<VectorResult> {
+  async index(knowledge: IndexedKnowledge, freeOnly = false): Promise<VectorResult> {
     try {
-      const embedding = await this.ai.embed(retrievalText(knowledge), 'search_document');
+      const embedding = await this.ai.embed(retrievalText(knowledge), 'search_document', freeOnly);
       await this.ensureCollection(embedding.vector.length);
       await this.request(`/collections/${this.collection}/points?wait=true`, {
         method: 'PUT',
@@ -25,7 +25,7 @@ export class VectorIndexService {
       });
       return { status: 'ready', embeddingModel: embedding.model };
     } catch (error) {
-      console.warn('Knowledge vector index failed', safeError(error));
+      console.warn('Knowledge vector index failed', freeOnly ? 'Autonomous index pending' : safeError(error));
       return { status: 'pending' };
     }
   }
@@ -56,7 +56,7 @@ export class VectorIndexService {
 
   private async ensureCollection(size: number) {
     const path = `/collections/${this.collection}`;
-    const response = await fetch(`${this.url}${path}`, { headers: this.headers() });
+    const response = await fetch(`${this.url}${path}`, { headers: this.headers(), signal: AbortSignal.timeout(10000) });
     if (response.status === 404) {
       await this.request(path, { method: 'PUT', body: { vectors: { size, distance: 'Cosine' } } });
       return;
@@ -70,6 +70,7 @@ export class VectorIndexService {
   private async request<T = unknown>(path: string, options: { method: string; body?: unknown }) {
     const response = await fetch(`${this.url}${path}`, {
       method: options.method, headers: this.headers(), body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw new Error(await response.text());
     return (await response.json()) as T;

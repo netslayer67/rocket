@@ -76,5 +76,6 @@ REFERENCE METADATA: ${JSON.stringify(reference)}`,
 
 export function patternContext(pattern: Knowledge) {
   const { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness, lessonType, diagnosis, rootCause, recommendedFix, failureDimensions, evidenceSources } = pattern;
-  return { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness, lessonType, diagnosis, rootCause, recommendedFix, failureDimensions, evidenceSources };
+  return { sourceLabel, topics, hookType, emotion, narrativeType, curiosityLevel, linkPlacement, patternSummary, conflict, persona, style, vocabulary, informationGap, discussionPattern, authorityType, ctaStyle, naturalness, lessonType, diagnosis, rootCause, recommendedFix, failureDimensions, evidenceSources, origin: pattern.origin, evidenceIds: pattern.evidenceIds,
+    ...(pattern.origin === 'autonomous' ? { caveat: 'Model-reviewed synthesis, not empirical evidence. Optional writing guidance only; never infer verified facts or measured effectiveness.' } : {}) };
 }

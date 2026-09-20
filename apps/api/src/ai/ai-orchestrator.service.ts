@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
 import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
+import { freeProvider, isFreeModel } from './free-model-policy';
 
 type OpenRouterResponse = {
   choices?: Array<{ message?: { content?: string } }>;
@@ -28,7 +29,7 @@ export class AiOrchestratorService {
     const inputHash = createHash('sha256')
       .update(JSON.stringify(request))
       .digest('hex');
-    const cached = this.cache.get(inputHash);
+    const cached = request.freeOnly ? undefined : this.cache.get(inputHash);
 
     if (cached) {
       const result = { ...cached, cached: true };
@@ -38,6 +39,7 @@ export class AiOrchestratorService {
 
     const apiKey = this.config.get<string>('OPENROUTER_API_KEY');
     if (!apiKey) {
+      if (request.freeOnly) throw new ServiceUnavailableException('Free learning requires an OpenRouter key');
       const result: AiResult = {
         content: '',
         model: 'local-demo',
@@ -48,7 +50,7 @@ export class AiOrchestratorService {
       return result;
     }
 
-    const models = this.config
+    const configuredModels = this.config
       .get<string>(
         'OPENROUTER_MODELS',
         'openai/gpt-oss-20b:free,google/gemma-3-27b-it:free,meta-llama/llama-3.3-70b-instruct:free',
@@ -56,15 +58,18 @@ export class AiOrchestratorService {
       .split(',')
       .map((model) => model.trim())
       .filter(Boolean);
+    const models = request.freeOnly ? [...new Set(configuredModels.filter(isFreeModel))].slice(0, 3) : configuredModels;
 
     let lastError = 'No model configured';
     for (const model of models) {
       try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
+          signal: AbortSignal.timeout(30000),
           headers: this.headers(apiKey),
           body: JSON.stringify({
             model,
+            ...(request.freeOnly ? { provider: freeProvider } : {}),
             messages: [
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
@@ -74,7 +79,7 @@ export class AiOrchestratorService {
             response_format: request.json ? { type: 'json_object' } : undefined,
           }),
         });
-        if (!response.ok) throw new Error(await response.text());
+        if (!response.ok) throw new Error(`Model request failed (${response.status})`);
 
         const body = (await response.json()) as OpenRouterResponse;
         const content = body.choices?.[0]?.message?.content?.trim();
@@ -88,19 +93,20 @@ export class AiOrchestratorService {
           inputTokens: body.usage?.prompt_tokens,
           outputTokens: body.usage?.completion_tokens,
         };
-        this.cache.set(inputHash, result);
+        if (!request.freeOnly) this.cache.set(inputHash, result);
         await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval });
         return result;
       } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
+        lastError = request.freeOnly ? 'Free model unavailable' : error instanceof Error ? error.message : String(error);
       }
     }
 
     throw new ServiceUnavailableException(`No configured model is available: ${lastError}`);
   }
 
-  async embed(input: string, inputType: 'search_document' | 'search_query'): Promise<EmbeddingResult> {
+  async embed(input: string, inputType: 'search_document' | 'search_query', freeOnly = false): Promise<EmbeddingResult> {
     const model = this.config.get<string>('OPENROUTER_EMBEDDING_MODEL', 'nvidia/nemotron-3-embed-1b:free');
+    if (freeOnly && !isFreeModel(model)) throw new ServiceUnavailableException('Paid embedding blocked for autonomous learning');
     const inputHash = createHash('sha256').update(`${model}:${inputType}:${input}`).digest('hex');
     const cached = this.embeddingCache.get(inputHash);
     if (cached) {
@@ -114,10 +120,11 @@ export class AiOrchestratorService {
 
     const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
       method: 'POST',
+      signal: AbortSignal.timeout(30000),
       headers: this.headers(apiKey),
-      body: JSON.stringify({ model, input, input_type: this.embeddingInputType(inputType), encoding_format: 'float' }),
+      body: JSON.stringify({ model, input, input_type: this.embeddingInputType(inputType), encoding_format: 'float', ...(freeOnly ? { provider: freeProvider } : {}) }),
     });
-    if (!response.ok) throw new ServiceUnavailableException(`Embedding request failed: ${await response.text()}`);
+    if (!response.ok) throw new ServiceUnavailableException(`Embedding request failed (${response.status})`);
 
     const body = (await response.json()) as EmbeddingResponse;
     const vector = body.data?.[0]?.embedding;

@@ -7,7 +7,7 @@
 <p>
   <a href="https://rocket-web-five.vercel.app"><strong>Open Studio</strong></a>
   ·
-  <a href="https://rocket-api-hazel.vercel.app/api/threads/status"><strong>API status</strong></a>
+  <a href="https://rocket-production-0b0e.up.railway.app/health"><strong>API status</strong></a>
   ·
   <a href="context/PRD.md"><strong>Product context</strong></a>
 </p>
@@ -128,26 +128,32 @@ Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
 ## Production
 
 - Web: [rocket-web-five.vercel.app](https://rocket-web-five.vercel.app)
-- API: [rocket-api-hazel.vercel.app](https://rocket-api-hazel.vercel.app)
+- API: [rocket-production-0b0e.up.railway.app](https://rocket-production-0b0e.up.railway.app)
 
-Production secrets are managed by Vercel. Never commit `.env` files, access tokens, app secrets, encryption keys, or private source material.
+Server-only production secrets are managed by Railway; Vercel receives only the public API origin. Never commit `.env` files, access tokens, app secrets, encryption keys, or private source material.
 
 ## Railway API for continuous learning
 
-The repository includes [Railway configuration](railway.json) for one persistent `@rocket/api` service. It reuses the existing `LearningService`: approved feedback is learned immediately and any approved backlog is checked every 60 seconds. It does not create a second worker, queue, auto-publish content, or convert manual analytics into DNA automatically.
+The repository includes [Railway configuration](railway.json) for one persistent `@rocket/api` service. Approved feedback is still converted immediately; the optional legacy timer checks its backlog. The autonomous internal worker additionally checks approved feedback, non-autonomous DNA and approved narratives every five minutes, independent of dashboard traffic. It synthesizes one diagnosis, checks it with a second model call, and saves accepted metadata with provenance for later retrieval.
+
+Autonomous learning defaults on Railway only. `AUTONOMOUS_LEARNING_ENABLED=false` disables it; explicit `true` enables it elsewhere for controlled testing. Only free OpenRouter models are allowed, including fallback and embeddings. Four attempts per UTC day, two per batch per day and a fifteen-minute failure delay protect quotas. Successfully processed or rejected unchanged batches are not repeated, and autonomous DNA does not feed itself. Inputs are limited to six recent items per source type, not the entire corpus. This is model-reviewed knowledge consolidation, not fine-tuning, measured improvement, or a promise of perpetual growth.
 
 Before cutover, connect the repository in Railway, keep **one replica** on a plan that does not sleep the service, and enter the existing server-only API variables in Railway. Do not copy them into the repository. For continuous learning, set:
 
 ```text
 LEARNING_SCHEDULER_ENABLED=true
 LEARNING_INTERVAL_MS=60000
+AUTONOMOUS_LEARNING_ENABLED=true
+AUTONOMOUS_LEARNING_INTERVAL_MS=300000
 WEB_ORIGIN=https://rocket-web-five.vercel.app
 CORS_ORIGINS=https://rocket-web-five.vercel.app
 ```
 
-After Railway generates an API domain, verify `GET /health` and a read-only route such as `/threads/status`. Then set Vercel's `NEXT_PUBLIC_API_URL` to the Railway origin **without** `/api`, for example `https://rocket-api-production.up.railway.app`. Set Railway's `THREADS_REDIRECT_URI` to `https://<railway-domain>/threads/callback` and register that same callback in Meta before reconnecting Threads.
+After deployment, verify `GET /health` and `GET /monitoring/history`. Health alone does not prove learning is running: inspect `learning.enabled`, `lastCheck`, `nextCheck`, `phase`, `reason` and `latest`. The monitoring page shows these separately from connection heartbeats. `complete` means one reviewed lesson was saved; `waiting` can legitimately mean no new approved evidence. A pending semantic index still permits lexical retrieval. Model/provider errors do not trigger paid fallback, demo DNA or publishing.
 
-Keep the current Vercel API URL and cron configuration until the Railway API, CORS, Threads callback, and learning activity have been verified. To roll back, restore Vercel's previous `NEXT_PUBLIC_API_URL` (which includes `/api`) and leave Vercel Cron enabled.
+Vercel's `NEXT_PUBLIC_API_URL` must be `https://rocket-production-0b0e.up.railway.app` **without** `/api`. Railway's `THREADS_REDIRECT_URI` and Meta's registered callback must both use `https://rocket-production-0b0e.up.railway.app/threads/callback`.
+
+To roll back autonomous execution, set `AUTONOMOUS_LEARNING_ENABLED=false`; persisted DNA and existing manual workflows remain intact. Do not increase worker replicas without distributed leasing and quota protection. Manual analytics promotion and publishing still require explicit approval, and no autonomous crawling is enabled.
 
 ## Knowledge and reference safety
 

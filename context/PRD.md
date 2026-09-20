@@ -32,6 +32,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 16. Operators can inspect bounded, manual outcome candidates grouped by narrative without auto-promoting DNA.
 17. Operators can explicitly approve a positive or negative outcome candidate and promote it once into diagnosis-first DNA.
 18. Reference suggestions can use bounded type, site, author, section, publish time, price, currency, and canonical metadata when available.
+19. The creator-authorized Railway worker consolidates approved internal feedback, DNA and approved narratives independently of an open page, using free models only and bounded durable attempts. Accepted, provenance-linked diagnoses can inform future drafts. Monitoring distinguishes actual processing, no new evidence, review rejection, provider unavailability and quota; it never implies model-weight training or guaranteed improvement.
 
 ## Functional requirements
 
@@ -56,7 +57,7 @@ An Indonesian content creator who writes social threads, newsletters, or posts a
 - Automatic social-platform publishing, scraping, or crawling.
 - Automated comment replies, scheduling, or analytics ingestion.
 - Fine-tuning, multi-user auth, or billing.
-- Durable scheduled jobs, platform analytics ingestion, and reply monitoring.
+- Distributed durable scheduled jobs, platform analytics ingestion, and reply monitoring.
 
 ## Success signal
 

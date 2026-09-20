@@ -1,4 +1,4 @@
-export type AiTask = 'knowledge-extraction' | 'knowledge-embedding' | 'narrative' | 'reference-suggestion' | 'review';
+export type AiTask = 'knowledge-extraction' | 'knowledge-embedding' | 'narrative' | 'reference-suggestion' | 'review' | 'internal-learning' | 'internal-learning-review';
 
 export interface AiRequest {
   task: AiTask;
@@ -6,6 +6,7 @@ export interface AiRequest {
   prompt: string;
   maxTokens: number;
   json?: boolean;
+  freeOnly?: boolean;
   retrieval?: AiRetrievalMetadata;
 }
 

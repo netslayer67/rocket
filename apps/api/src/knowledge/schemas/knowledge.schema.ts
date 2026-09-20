@@ -82,8 +82,18 @@ export class Knowledge {
 
   @Prop()
   embeddingModel?: string;
+
+  @Prop({ enum: ['autonomous'] })
+  origin?: 'autonomous';
+
+  @Prop()
+  learningKey?: string;
+
+  @Prop({ type: [String], default: [] })
+  evidenceIds?: string[];
 }
 
 export const KnowledgeSchema = SchemaFactory.createForClass(Knowledge);
 KnowledgeSchema.index({ topics: 1, createdAt: -1 });
 KnowledgeSchema.index({ vectorStatus: 1, createdAt: -1 });
+KnowledgeSchema.index({ learningKey: 1 }, { unique: true, sparse: true });
