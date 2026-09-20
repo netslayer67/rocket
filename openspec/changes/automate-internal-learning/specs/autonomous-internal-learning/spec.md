@@ -29,9 +29,16 @@ The worker SHALL synthesize at most one positive or negative lesson per unchange
 ### Requirement: Free-only bounded execution
 Autonomous calls MUST use only free OpenRouter chat and embedding models, including fallback, with zero-price provider limits. The worker SHALL enforce at most four attempts per UTC day, two per fingerprint per UTC day, a fifteen-minute retry delay, and non-overlapping execution in the supported single-replica deployment. Failed batches SHALL be eligible again on a later UTC day; completed/rejected unchanged batches SHALL not be repeated. Calls MUST time out and failures MUST use sanitized reasons. Missing credentials MUST NOT generate demo knowledge.
 
+Autonomous chat MUST NOT use the dynamic `openrouter/free` router. It SHALL choose no more than three reviewed free models that support the worker's structured-output contract, and reject an unapproved configured model rather than sending approved internal evidence to it.
+
 #### Scenario: Free model unavailable
 - **WHEN** all bounded free model attempts fail or no free model is configured
 - **THEN** the worker records unavailability, backs off, and never invokes a paid model
+
+#### Scenario: Unapproved dynamic router
+
+- **WHEN** an operator configures `openrouter/free` or another unreviewed free model for autonomous learning
+- **THEN** the worker makes no request to that provider and reports free-model unavailability
 
 #### Scenario: Truncated or malformed response
 - **WHEN** a free model exhausts the output token budget or returns invalid JSON

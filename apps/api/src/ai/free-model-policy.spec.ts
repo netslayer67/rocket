@@ -11,14 +11,14 @@ describe('Autonomous free-only AI routing', () => {
   }
   afterEach(() => { global.fetch = originalFetch; });
 
-  it('filters paid models, caps fallback to three, and never logs provider error bodies', async () => {
+  it('uses only approved learning fallbacks and never logs provider error bodies', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429, text: () => 'private evidence' });
-    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'paid/model,a:free,b:free,c:free,d:free' });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_LEARNING_MODELS: 'openrouter/free,poolside/laguna-s-2.1:free,nvidia/nemotron-3-super-120b-a12b:free,nex-agi/nex-n2.5-mini:free,nex-agi/nex-n2.5-pro:free' });
     await expect(service.complete(request)).rejects.toThrow('Free model unavailable');
     expect(global.fetch).toHaveBeenCalledTimes(3);
     for (const [, options] of (global.fetch as jest.Mock).mock.calls) {
       expect(JSON.parse(options.body).provider).toEqual(freeProvider);
-      expect(JSON.parse(options.body).model).toMatch(/:free$/);
+      expect(JSON.parse(options.body).model).toMatch(/^(nvidia\/nemotron-3-super-120b-a12b|nex-agi\/nex-n2.5-(mini|pro)):free$/);
       expect(options.signal).toBeDefined();
     }
     expect(runs.create).not.toHaveBeenCalled();
@@ -27,15 +27,16 @@ describe('Autonomous free-only AI routing', () => {
   it('does not fall back to demo or a paid-only configuration', async () => {
     global.fetch = jest.fn();
     await expect(setup().service.complete(request)).rejects.toThrow('requires an OpenRouter key');
-    await expect(setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'paid/model' }).service.complete(request)).rejects.toThrow();
+    await expect(setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_LEARNING_MODELS: 'paid/model' }).service.complete(request)).rejects.toThrow();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('accepts the free router and keeps private prompts out of telemetry', async () => {
+  it('rejects the dynamic free router and keeps private prompts out of telemetry', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '{}' } }] }) });
-    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'openrouter/free' });
-    expect((await service.complete(request)).model).toBe('openrouter/free');
-    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private evidence');
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_LEARNING_MODELS: 'openrouter/free' });
+    await expect(service.complete(request)).rejects.toThrow('No configured model is available');
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(runs.create).not.toHaveBeenCalled();
   });
 
   it('blocks paid embedding before network access and caps free provider price', async () => {
@@ -50,9 +51,10 @@ describe('Autonomous free-only AI routing', () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ choices: [{ finish_reason: 'length', message: { content: '{' } }] }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'resolved:free', choices: [{ finish_reason: 'stop', message: { content: '{}' } }] }) });
-    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'a:free,b:free' });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_LEARNING_MODELS: 'nvidia/nemotron-3-super-120b-a12b:free,nex-agi/nex-n2.5-mini:free' });
     expect((await service.complete(request)).model).toBe('resolved:free');
     expect(runs.create).toHaveBeenCalledTimes(1);
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).reasoning).toEqual({ effort: 'low', exclude: true });
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body).reasoning).toEqual({ effort: 'none', exclude: true });
   });
 });

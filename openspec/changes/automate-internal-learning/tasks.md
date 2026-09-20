@@ -1,6 +1,7 @@
 ## 1. Internal learning
 
 - [x] 1.1 Enforce free-only bounded routing and embedding, with regression tests.
+- [x] 1.4 Restrict autonomous evidence to reviewed structured-output free model fallbacks and verify their routing.
 - [x] 1.2 Implement approved evidence selection, diagnosis validation, and provenance-linked idempotent knowledge.
 - [x] 1.3 Implement persistent bounded cycle attempts and browser-independent Railway scheduling, with safety tests.
 

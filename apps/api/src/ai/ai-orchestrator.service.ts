@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
 import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
-import { freeProvider, isFreeModel } from './free-model-policy';
+import { freeLearningRouting, freeProvider, isFreeModel, learningModels } from './free-model-policy';
 
 type OpenRouterResponse = {
   model?: string;
@@ -59,7 +59,9 @@ export class AiOrchestratorService {
       .split(',')
       .map((model) => model.trim())
       .filter(Boolean);
-    const models = request.freeOnly ? [...new Set(configuredModels.filter(isFreeModel))].slice(0, 3) : configuredModels;
+    const models = request.freeOnly
+      ? learningModels(this.config.get<string>('OPENROUTER_LEARNING_MODELS'))
+      : configuredModels;
 
     let lastError = 'No model configured';
     for (const model of models) {
@@ -70,7 +72,7 @@ export class AiOrchestratorService {
           headers: this.headers(apiKey),
           body: JSON.stringify({
             model,
-            ...(request.freeOnly ? { provider: freeProvider, reasoning: { effort: 'low', exclude: true } } : {}),
+            ...(request.freeOnly ? freeLearningRouting(model) : {}),
             messages: [
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
