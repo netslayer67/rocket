@@ -45,4 +45,14 @@ describe('Autonomous free-only AI routing', () => {
     await setup({ OPENROUTER_API_KEY: 'test' }).service.embed('text', 'search_document', true);
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).provider).toEqual(freeProvider);
   });
+
+  it('rejects truncated output, falls back within free models and records the resolved model', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ choices: [{ finish_reason: 'length', message: { content: '{' } }] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'resolved:free', choices: [{ finish_reason: 'stop', message: { content: '{}' } }] }) });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'a:free,b:free' });
+    expect((await service.complete(request)).model).toBe('resolved:free');
+    expect(runs.create).toHaveBeenCalledTimes(1);
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).reasoning).toEqual({ effort: 'low', exclude: true });
+  });
 });

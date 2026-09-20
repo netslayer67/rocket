@@ -8,7 +8,8 @@ import { AiRun } from './schemas/ai-run.schema';
 import { freeProvider, isFreeModel } from './free-model-policy';
 
 type OpenRouterResponse = {
-  choices?: Array<{ message?: { content?: string } }>;
+  model?: string;
+  choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
   usage?: { prompt_tokens?: number; completion_tokens?: number };
 };
 
@@ -69,7 +70,7 @@ export class AiOrchestratorService {
           headers: this.headers(apiKey),
           body: JSON.stringify({
             model,
-            ...(request.freeOnly ? { provider: freeProvider } : {}),
+            ...(request.freeOnly ? { provider: freeProvider, reasoning: { effort: 'low', exclude: true } } : {}),
             messages: [
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
@@ -82,12 +83,13 @@ export class AiOrchestratorService {
         if (!response.ok) throw new Error(`Model request failed (${response.status})`);
 
         const body = (await response.json()) as OpenRouterResponse;
+        if (request.freeOnly && body.choices?.[0]?.finish_reason === 'length') throw new Error('Free model response was truncated');
         const content = body.choices?.[0]?.message?.content?.trim();
         if (!content) throw new Error('Model returned no content');
 
         const result: AiResult = {
           content,
-          model,
+          model: body.model ?? model,
           cached: false,
           mode: 'live',
           inputTokens: body.usage?.prompt_tokens,

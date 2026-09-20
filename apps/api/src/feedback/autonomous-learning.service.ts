@@ -105,7 +105,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
         this.state('synthesizing', 'processing_evidence');
         const existing = await this.evidence.recentLessons();
         const result = await this.ai.complete({ task: 'internal-learning', system: learningSystem,
-          prompt: JSON.stringify({ evidence, existing }), maxTokens: 1600, json: true, freeOnly: true });
+          prompt: JSON.stringify({ evidence, existing }), maxTokens: 3200, json: true, freeOnly: true });
         if (result.mode !== 'live') throw new ServiceUnavailableException();
         cycle.models = [result.model];
         const candidate = parseInternalLesson(result.content, evidence);
@@ -116,7 +116,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
         await cycle.save();
         this.state('validating', 'checking_candidate');
         const review = await this.ai.complete({ task: 'internal-learning-review', system: reviewSystem,
-          prompt: JSON.stringify({ evidence, existing, candidate }), maxTokens: 300, json: true, freeOnly: true });
+          prompt: JSON.stringify({ evidence, existing, candidate }), maxTokens: 1200, json: true, freeOnly: true });
         if (review.mode !== 'live') throw new ServiceUnavailableException();
         cycle.models.push(review.model);
         if (!acceptsInternalLesson(review.content)) return await this.finish(cycle, 'rejected', 'review_rejected');
@@ -131,7 +131,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
         await this.finish(cycle, 'complete', record.vectorStatus === 'ready' ? 'lesson_saved' : 'lesson_saved_index_pending');
       } catch (error) {
         const malformed = error instanceof SyntaxError;
-        await this.finish(cycle, malformed ? 'rejected' : 'failed', malformed ? 'invalid_model_output'
+        await this.finish(cycle, 'failed', malformed ? 'invalid_model_output'
           : error instanceof ServiceUnavailableException ? 'free_model_unavailable' : 'storage_or_index_unavailable');
       }
     } catch {

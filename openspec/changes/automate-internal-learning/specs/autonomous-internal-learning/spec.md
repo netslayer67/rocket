@@ -33,6 +33,10 @@ Autonomous calls MUST use only free OpenRouter chat and embedding models, includ
 - **WHEN** all bounded free model attempts fail or no free model is configured
 - **THEN** the worker records unavailability, backs off, and never invokes a paid model
 
+#### Scenario: Truncated or malformed response
+- **WHEN** a free model exhausts the output token budget or returns invalid JSON
+- **THEN** the response cannot create DNA; fallback and later retries remain within free-model and daily attempt limits rather than permanently treating a formatting failure as an evidence rejection
+
 #### Scenario: Unchanged evidence or quota exhausted
 - **WHEN** a batch is already processed or the daily attempt ceiling is reached
 - **THEN** subsequent checks make no AI calls and report waiting or quota state

@@ -11,7 +11,7 @@
 
 - Implementation commit `3264c583679793131910ec0e37c146efcb3afa47` pushed to `origin/main`.
 - Vercel production deployment `dpl_GSTkUERDnG1A7k14VkagE4x39knv` is READY and aliased to `https://rocket-web-five.vercel.app`.
-- Git-triggered deployment initially failed because Vercel root was `.` with framework `Other`, despite successful compilation. Remote project settings were corrected to root `apps/web`, framework `nextjs`, default output. Git deployment verification is pending the next push.
-- Railway health remains 200, but monitoring still lacks the new `learning` field. GitHub deployment history still lists Railway's previous `5e62dc9` revision; therefore live autonomous execution is **not yet verified**. Railway account integration is required to inspect/repair its trigger or deploy the new revision. Do not infer worker success from health, SSE heartbeats, or successful Vercel deployment.
+- Git-triggered deployment initially failed because Vercel root was `.` with framework `Other`, despite successful compilation. Remote project settings were corrected to root `apps/web`, framework `nextjs`, default output. Commit `8650c32` then auto-deployed successfully as `dpl_CHq4BUh595GXM5v1TNwf5wEHnFoj` and received the production alias.
+- Railway also deployed `8650c32` successfully. Monitoring now reports `learning.enabled=true`, ten eligible inputs, a durable cycle and last/next checks without a manual trigger. The first cycle returned invalid JSON after exactly 1,600 output tokens and correctly saved no DNA. A follow-up fixes truncation handling and bounded formatting retries; its production result remains to be checked. Health and heartbeat alone were not used as evidence.
 
 This change remains unarchived until the production handoff is resolved.

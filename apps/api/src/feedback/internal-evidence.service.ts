@@ -8,7 +8,7 @@ import { Feedback } from './schemas/feedback.schema';
 
 export type InternalEvidence = { id: string; kind: 'feedback' | 'dna' | 'narrative'; data: Record<string, unknown> };
 export function evidenceFingerprint(evidence: InternalEvidence[]) {
-  return createHash('sha256').update(JSON.stringify({ policy: 1, evidence })).digest('hex');
+  return createHash('sha256').update(JSON.stringify({ policy: 2, evidence })).digest('hex');
 }
 const text = (value: unknown, limit = 700) => String(value ?? '').slice(0, limit);
 

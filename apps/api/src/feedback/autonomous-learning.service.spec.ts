@@ -109,6 +109,7 @@ describe('Autonomous internal worker', () => {
     await disagreement.service.check(); expect(disagreement.rows[0].reason).toBe('review_rejected');
     const malformed = setup(); malformed.ai.complete.mockResolvedValue({ mode: 'live', model: 'model:free', content: 'not json' });
     await malformed.service.check(); expect(malformed.rows[0].reason).toBe('invalid_model_output');
+    expect(malformed.rows[0].phase).toBe('failed');
     const duplicate = setup(); duplicate.evidence.recentLessons.mockResolvedValue([candidate]);
     await duplicate.service.check(); expect(duplicate.rows[0].reason).toBe('no_valid_novel_lesson');
     const revoked = setup(); revoked.evidence.collect.mockResolvedValueOnce(inputs).mockResolvedValue([]);
