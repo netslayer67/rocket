@@ -132,6 +132,8 @@ Local endpoints: web `http://localhost:3000` · API `http://localhost:4000`.
 
 Server-only production secrets are managed by Railway; Vercel receives only the public API origin. Never commit `.env` files, access tokens, app secrets, encryption keys, or private source material.
 
+Vercel project `rocket-web` must use root directory `apps/web` and the **Next.js** framework preset. Root `.` with **Other** builds the monorepo but fails looking for a `public` output directory. GitHub pushes should deploy the web workspace with its default Next.js output; CLI deployments must include the repository layout matching this root setting.
+
 ## Railway API for continuous learning
 
 The repository includes [Railway configuration](railway.json) for one persistent `@rocket/api` service. Approved feedback is still converted immediately; the optional legacy timer checks its backlog. The autonomous internal worker additionally checks approved feedback, non-autonomous DNA and approved narratives every five minutes, independent of dashboard traffic. It synthesizes one diagnosis, checks it with a second model call, and saves accepted metadata with provenance for later retrieval.
