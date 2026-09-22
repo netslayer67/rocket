@@ -40,6 +40,8 @@ export type Narrative = {
   publishedAt?: string;
   outcomeKnowledgeId?: string;
   outcomePromotedAt?: string;
+  retrieval?: { mode: 'hybrid' | 'semantic' | 'lexical-fallback' | 'recent-fallback' | 'empty'; semanticCount: number; lexicalCount: number; knowledgeIds: string[] };
+  quality?: { persona: number; specificity: number; stereotype: number; hiddenSelling: number; overall: number; passed: boolean; diagnostics: string[] };
 };
 
 export type NarrativeDiagnostic = { code: string; dimension: string; severity: 'blocking' | 'warning'; message: string };
@@ -77,7 +79,7 @@ export type MonitoringEvent = { id: string; kind: MonitoringKind; agent: string;
 export type LearningStatus = {
   enabled: boolean; phase: string; reason: string; lastCheck?: string; nextCheck?: string;
   sourceCount: number; attemptsToday: number; dailyLimit: number; freeOnly: boolean;
-  latest?: { phase: string; reason: string; createdAt: string; finishedAt?: string; knowledgeId?: string; models: string[]; evidenceIds: string[] } | null;
+  latest?: { phase: string; reason: string; createdAt: string; finishedAt?: string; knowledgeId?: string; models: string[]; evidenceIds: string[]; quality?: { eligibleDrafts: number; averageOverall?: number } } | null;
 };
 export type MonitoringSnapshot = { source: 'persisted metadata'; windowStart: string; generatedAt: string; events: MonitoringEvent[]; learning?: LearningStatus; summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> } };
 export type MonitoringStreamEvent = { at?: string; source?: string; message?: string } | MonitoringSnapshot;

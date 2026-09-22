@@ -10,6 +10,7 @@ export class LearningCycle {
   @Prop({ default: '' }) reason!: string;
   @Prop({ type: [String], default: [] }) models!: string[];
   @Prop() knowledgeId?: string;
+  @Prop({ type: Object }) quality?: { eligibleDrafts: number; averageOverall?: number };
   @Prop() finishedAt?: Date;
   createdAt!: Date;
   updatedAt!: Date;

@@ -7,8 +7,10 @@ export type NarrativeDiagnostic = {
 
 const mappings: Array<[string, NarrativeDiagnostic['code'], NarrativeDiagnostic['dimension']]> = [
   ['Product Injection Score', 'PRODUCT_INJECTION', 'reference'],
+  ['Bahasa promosi', 'PROMOTIONAL_LANGUAGE', 'reference'],
   ['jembatan konteks', 'REFERENCE_BRIDGE', 'reference'],
   ['Diagnosis persona', 'PERSONA_CONTEXT', 'persona'],
+  ['Diagnosis stereotype', 'STEREOTYPE_RISK', 'persona'],
   ['Diagnosis evidence', 'EVIDENCE_PROVENANCE', 'evidence'],
   ['Detail adegan tidak koheren', 'SCENE_CONFLICT', 'scene'],
   ['Context drift', 'CONTEXT_DRIFT', 'scene'],

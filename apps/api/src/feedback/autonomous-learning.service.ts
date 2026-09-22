@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AiOrchestratorService } from '../ai/ai-orchestrator.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
-import { evidenceFingerprint, InternalEvidenceService } from './internal-evidence.service';
+import { evidenceFingerprint, evidenceQuality, InternalEvidenceService } from './internal-evidence.service';
 import { acceptsInternalLesson, learningSystem, parseInternalLesson, reviewSystem } from './internal-lesson';
 import { LearningCycle } from './schemas/learning-cycle.schema';
 import { PersonasService } from '../personas/personas.service';
@@ -105,7 +105,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
       if (previous && Date.now() - new Date(previous.updatedAt).getTime() < retryDelay) return this.state('backoff', 'retry_later');
       if (await this.cycles.countDocuments({ day }) >= dailyLimit) return this.state('quota', 'daily_limit');
       const cycle = await this.cycles.create({ fingerprint, attempt: attempts + 1, day,
-        evidenceIds: evidence.map((item) => item.id), phase: 'synthesizing' });
+        evidenceIds: evidence.map((item) => item.id), quality: evidenceQuality(evidence), phase: 'synthesizing' });
       try {
         this.state('synthesizing', 'processing_evidence');
         const existing = await this.evidence.recentLessons(personaId);

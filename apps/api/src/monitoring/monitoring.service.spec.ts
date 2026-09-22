@@ -1,5 +1,5 @@
 import { MonitoringService } from './monitoring.service';
-import { jobEvent } from './monitoring-events';
+import { cycleEvent, jobEvent } from './monitoring-events';
 
 function model(records: unknown[] = [], one?: unknown) {
   return {
@@ -47,6 +47,12 @@ describe('MonitoringService', () => {
     const result = jobEvent({ _id: 'id', jobId: 'job', payload: { topic: 'private' }, events: [{ sequence: 1, type: 'complete', data: { progress: 100 } }] } as never);
     expect(result).not.toHaveProperty('payload');
     expect(result.details).toEqual({ progress: 100 });
+  });
+
+  it('exposes only an observational quality aggregate for a learning cycle', () => {
+    const event = cycleEvent({ _id: 'cycle', phase: 'complete', reason: 'lesson_saved', evidenceIds: ['a'], quality: { eligibleDrafts: 2, averageOverall: 91 } } as never);
+
+    expect(event.details).toMatchObject({ qualityDrafts: 2, qualityAverage: 91 });
   });
 
   it('rejects retry when a job has no reusable payload', async () => {

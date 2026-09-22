@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import type { AiRetrievalMetadata } from '../../ai/ai.types';
+import type { DraftQuality } from '../draft-quality';
 
 export type NarrativeDocument = HydratedDocument<Narrative>;
 
@@ -28,6 +30,12 @@ export class Narrative {
 
   @Prop({ type: [String], default: [] })
   reviewerNotes!: string[];
+
+  @Prop({ type: Object })
+  retrieval?: AiRetrievalMetadata;
+
+  @Prop({ type: Object })
+  quality?: DraftQuality;
 
   @Prop({ enum: ['draft', 'approved'], default: 'draft' })
   status!: 'draft' | 'approved';

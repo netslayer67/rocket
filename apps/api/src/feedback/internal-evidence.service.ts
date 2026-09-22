@@ -7,8 +7,16 @@ import { Narrative } from '../narratives/schemas/narrative.schema';
 import { Feedback } from './schemas/feedback.schema';
 
 export type InternalEvidence = { id: string; kind: 'feedback' | 'dna' | 'narrative'; data: Record<string, unknown> };
+export type EvidenceQuality = { eligibleDrafts: number; averageOverall?: number };
 export function evidenceFingerprint(evidence: InternalEvidence[]) {
   return createHash('sha256').update(JSON.stringify({ policy: 3, evidence })).digest('hex');
+}
+export function evidenceQuality(evidence: InternalEvidence[]): EvidenceQuality {
+  const scores = evidence.filter((item) => item.kind === 'narrative')
+    .map((item) => item.data.quality as { passed?: boolean; overall?: number } | undefined)
+    .filter((quality): quality is { passed: true; overall: number } => Boolean(quality?.passed && Number.isFinite(quality.overall)))
+    .map((quality) => quality.overall);
+  return scores.length ? { eligibleDrafts: scores.length, averageOverall: Math.round(scores.reduce((total, score) => total + score, 0) / scores.length) } : { eligibleDrafts: 0 };
 }
 const text = (value: unknown, limit = 700) => String(value ?? '').slice(0, limit);
 
@@ -28,6 +36,7 @@ export class InternalEvidenceService {
         .sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
       this.narratives.find({ personaId, status: 'approved' }).sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
     ]);
+    const eligibleNarratives = narratives.filter((item) => item.quality?.passed !== false);
     return [
       ...feedback.map((item): InternalEvidence => ({ id: `feedback:${item._id}`, kind: 'feedback', data: {
         narrativeId: String(item.narrativeId), lessonType: item.lessonType, scores: item.scores, notes: text(item.notes),
@@ -37,9 +46,10 @@ export class InternalEvidenceService {
         diagnosis: text(item.diagnosis), rootCause: text(item.rootCause), recommendedFix: text(item.recommendedFix),
         failureDimensions: item.failureDimensions?.slice(0, 8), evidenceSources: item.evidenceSources?.slice(0, 6),
       } })),
-      ...narratives.map((item): InternalEvidence => ({ id: `narrative:${item._id}`, kind: 'narrative', data: {
+      ...eligibleNarratives.map((item): InternalEvidence => ({ id: `narrative:${item._id}`, kind: 'narrative', data: {
         topic: text(item.topic, 120), title: text(item.title, 200), excerpt: text(item.body, 1200),
-        linkPlacement: item.linkPlacement, caveat: 'Approved writing example; not measured effectiveness or verified facts.',
+        linkPlacement: item.linkPlacement, quality: item.quality ? { passed: item.quality.passed, overall: item.quality.overall } : undefined,
+        caveat: 'Approved writing example; not measured effectiveness or verified facts.',
       } })),
     ].sort((a, b) => a.id.localeCompare(b.id));
   }

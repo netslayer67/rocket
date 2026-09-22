@@ -58,6 +58,8 @@ describe('NarrativesService quality gate', () => {
 
     expect(ai.complete).toHaveBeenCalledTimes(2);
     expect(result.personaId).toBe('active');
+    expect(result.retrieval).toEqual({ mode: 'empty', semanticCount: 0, lexicalCount: 0, knowledgeIds: [] });
+    expect(result.quality).toMatchObject({ overall: expect.any(Number), passed: true });
     expect(ai.complete.mock.calls[1][0].prompt).toContain('Detail adegan tidak koheren: layangan dan lantai');
     expect(result.reviewerNotes.some((note: string) => note.includes('Detail adegan tidak koheren'))).toBe(false);
   });
@@ -81,6 +83,7 @@ describe('NarrativesService quality gate', () => {
     expect(ai.complete.mock.calls[0][0].prompt).toContain('Shop Example');
     expect(result.referenceTitle).toBe('Giannis Immortality Basketball Shoes');
     expect(result.reviewerNotes.some((note: string) => note.startsWith('Review blocked:'))).toBe(false);
+    expect(result.retrieval?.mode).toBe('empty');
   });
 
   it('passes negative lessons to the generator as constraints', async () => {

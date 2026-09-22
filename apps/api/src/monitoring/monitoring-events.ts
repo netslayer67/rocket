@@ -47,7 +47,8 @@ export function learningEvent(record: Timestamped & { status: string }): Monitor
 export function cycleEvent(record: Timestamped & LearningCycle): MonitoringEvent {
   return event(`cycle:${record._id}`, 'learning', 'Learning Agent', record.phase,
     `Internal learning ${record.phase}`, record.updatedAt ?? record.createdAt,
-    { reason: record.reason, evidenceCount: record.evidenceIds.length, knowledgeId: record.knowledgeId ?? null });
+    { reason: record.reason, evidenceCount: record.evidenceIds.length, knowledgeId: record.knowledgeId ?? null,
+      qualityDrafts: record.quality?.eligibleDrafts ?? 0, qualityAverage: record.quality?.averageOverall ?? null });
 }
 
 export function knowledgeEvent(record: Timestamped & { lessonType?: string; vectorStatus?: string }): MonitoringEvent {

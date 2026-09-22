@@ -1,4 +1,5 @@
 import { hasNaturalnessIssue, isNaturalnessBlocked, reviewNarrative } from './narrative-review';
+import { evaluateDraftQuality } from './draft-quality';
 
 describe('narrative naturalness review', () => {
   it('flags contrast reframing and an em dash', () => {
@@ -130,5 +131,20 @@ describe('narrative naturalness review', () => {
     );
 
     expect(notes.join(' ')).not.toContain('Diagnosis evidence');
+  });
+
+  it('blocks an explicit identity stereotype but keeps qualified observations available', () => {
+    const stereotyped = reviewNarrative('aku masih kepikiran obrolan ini', 'Aku baru sadar semua cewek pasti suka kopi mahal.');
+    const qualified = reviewNarrative('aku masih kepikiran obrolan ini', 'Aku baru sadar temanku suka kopi mahal, tapi belum tentu itu berlaku buat orang lain.');
+
+    expect(stereotyped.join(' ')).toContain('Diagnosis stereotype');
+    expect(qualified.join(' ')).not.toContain('Diagnosis stereotype');
+    expect(evaluateDraftQuality(stereotyped)).toMatchObject({ stereotype: 0, passed: false, diagnostics: expect.arrayContaining(['STEREOTYPE_RISK']) });
+  });
+
+  it('turns clear reviewer diagnostics into a passing, explainable quality snapshot', () => {
+    const quality = evaluateDraftQuality([]);
+
+    expect(quality).toEqual({ persona: 100, specificity: 100, stereotype: 100, hiddenSelling: 100, overall: 100, passed: true, diagnostics: [] });
   });
 });

@@ -13,7 +13,8 @@ import { Narrative } from './schemas/narrative.schema';
 import { ThreadsService } from '../threads/threads.service';
 import { Optional } from '@nestjs/common';
 import { demoSuggestion, parseSuggestion, patternContext, suggestionPrompt } from './narrative-parsers';
-import { diagnoseReviewNotes } from './narrative-diagnostics';
+import { evaluateDraftQuality } from './draft-quality';
+import { listedNarrative, reviewNotesForNarrative } from './narrative-listing';
 type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>; type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'> & Partial<Pick<Persona, 'thinkingStyle' | 'observationStyle' | 'reasoningPatterns'>>;
 export type NarrativeProgress = (stage: 'generating' | 'reviewing' | 'saved', progress: number, message: string) => void;
 
@@ -72,6 +73,8 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
       referenceUrl: reference.url,
       ...rewritten.draft,
       reviewerNotes,
+      retrieval: retrieval.metadata,
+      quality: evaluateDraftQuality(reviewerNotes),
     });
     onProgress?.('saved', 90, 'Draft sudah disimpan ke review queue.');
     return saved;
@@ -102,7 +105,7 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
   async approve(id: string) {
     const current = await this.narratives.findById(id).lean();
     if (!current) throw new NotFoundException('Narrative tidak ditemukan');
-    if (isNaturalnessBlocked(currentReviewerNotes(current))) {
+    if (isNaturalnessBlocked(reviewNotesForNarrative(current))) {
       throw new BadRequestException('Approval diblokir: regenerasi atau edit pola AI generik terlebih dahulu.');
     }
     const narrative = await this.narratives.findByIdAndUpdate(id, { status: 'approved' }, { new: true }).lean();
@@ -114,7 +117,7 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
     if (!this.threads) throw new BadRequestException('Threads publishing is not configured.');
     const current = await this.narratives.findById(id).lean();
     if (!current) throw new NotFoundException('Narrative tidak ditemukan');
-    if (current.status !== 'approved' || isNaturalnessBlocked(currentReviewerNotes(current))) {
+    if (current.status !== 'approved' || isNaturalnessBlocked(reviewNotesForNarrative(current))) {
       throw new BadRequestException('Publish hanya tersedia untuk draft yang sudah disetujui.');
     }
     if (current.publishedThreadId) return current;
@@ -178,16 +181,6 @@ type ReferenceContext = { title?: string; url?: string; description: string; met
 function reviewContext(topic: string, persona: PersonaShape, reference: ReferenceContext) {
   return { topic, vocabulary: persona.vocabulary, referenceTitle: reference.title, referenceUrl: reference.url, evidence: reference.description ? [{ source: 'reference-metadata' as const, text: reference.description }] : [] };
 }
-
-function currentReviewerNotes(narrative: Pick<Narrative, 'topic' | 'title' | 'body' | 'referenceTitle' | 'referenceUrl' | 'reviewerNotes'>) {
-  return [...new Set([...(narrative.reviewerNotes ?? []), ...reviewNarrative(narrative.title, narrative.body, {
-    topic: narrative.topic,
-    referenceTitle: narrative.referenceTitle,
-    referenceUrl: narrative.referenceUrl,
-  })])];
-}
-
-function listedNarrative(narrative: Pick<Narrative, 'topic' | 'title' | 'body' | 'referenceTitle' | 'referenceUrl' | 'reviewerNotes'>) { const reviewerNotes = currentReviewerNotes(narrative); return { ...narrative, reviewerNotes, reviewerDiagnostics: diagnoseReviewNotes(reviewerNotes) }; }
 
 export function demoNarrative(dto: GenerateNarrativeDto, persona: PersonaShape, reference: ReferenceContext = { title: dto.referenceTitle, url: dto.referenceUrl, description: '' }): GeneratedNarrative {
   const narrator = persona.vocabulary.find((word) => /^(gue|gw|aku|saya)$/i.test(word)) ?? 'aku';

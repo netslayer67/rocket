@@ -51,6 +51,16 @@ describe('Autonomous internal worker', () => {
     expect(JSON.stringify(rows)).not.toContain('No contextual bridge.');
   });
 
+  it('records only compact quality aggregate from eligible narrative evidence', async () => {
+    const { service, evidence, rows } = setup();
+    evidence.collect.mockResolvedValue([...inputs, { id: 'narrative:3', kind: 'narrative', data: { quality: { passed: true, overall: 86 } } }]);
+
+    await service.check();
+
+    expect(rows[0].quality).toEqual({ eligibleDrafts: 1, averageOverall: 86 });
+    expect(JSON.stringify(rows[0])).not.toContain('narrative body');
+  });
+
   it('starts automatically only on Railway or explicit opt-in, with a kill switch', () => {
     expect(setup({}).service.enabled).toBe(false);
     expect(setup({ RAILWAY_ENVIRONMENT_ID: 'production' }).service.enabled).toBe(true);

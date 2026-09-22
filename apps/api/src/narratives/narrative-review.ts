@@ -36,6 +36,8 @@ const weakProductQuestion = /\b(?:apakah|bakal)\b[^?\n]{0,120}\b(?:solusi|nyaman
 // ponytail: keep claim vocabulary narrow; broaden only after a reviewed miss, never into a word blacklist.
 const personaVocabulary = /\b(?:komunitas|kultur|kreatif|perspektif|ruang|proses)\b/iu;
 const unsupportedProductClaim = /\b(?:detail\s+furing|furing|siluet\s+tubuh|jatuhnya\s+kain|tetap\s+stabil|kenyamanan\s+tekstur)\b/iu;
+// ponytail: explicit universal claims only; broaden after reviewed false-negative examples, never by blacklisting identities.
+const stereotypeClaim = /\b(?:semua|seluruh|setiap)\s+(?:perempuan|cewek|cowok|laki-laki|anak\s+jaksel|orang\s+(?:Jakarta|Jaksel))\b[^.!?\n]{0,100}\b(?:suka|pasti|selalu|maunya|nggak\s+bisa|cuma)\b/iu;
 
 export type EvidenceSource = { source: 'experience' | 'user-confirmed' | 'reference-metadata'; text?: string };
 export type NarrativeReviewContext = { topic?: string; referenceTitle?: string; referenceUrl?: string; vocabulary?: string[]; evidence?: EvidenceSource[] };
@@ -74,6 +76,7 @@ export function reviewNarrative(title: string, body: string, context: NarrativeR
   if (drift) notes.push(block(`Context drift terdeteksi: ${drift}.`));
   if (marketplaceLanguage.test(body)) notes.push(block('Bahasa marketplace terdeteksi; ubah deskripsi listing menjadi observasi pribadi.'));
   if (personaCosplay(body)) notes.push(block('Diagnosis persona: vocabulary muncul tanpa scene, observasi, atau proses berpikir yang membangunnya.'));
+  if (stereotypeClaim.test(body)) notes.push(block('Diagnosis stereotype: generalisasi kelompok tidak didukung observasi spesifik.'));
   if (unsupportedProductDetail(body, evidence)) notes.push(block('Diagnosis evidence: detail produk tidak punya sumber yang dapat ditelusuri; hapus atau ubah menjadi dugaan yang jujur.'));
   const injectionScore = productInjectionScore(body, referenceTitle, referenceUrl);
   if (injectionScore >= 60) notes.push(block(`Product Injection Score ${injectionScore}/100; cerita terasa dibuat untuk mengantar produk.`));

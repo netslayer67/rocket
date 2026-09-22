@@ -43,6 +43,7 @@ export function LearningStatusPanel({ status }: { status?: LearningStatus }) {
     {latest && <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
       Hasil terakhir ({date(latest.finishedAt ?? latest.createdAt)}): {reasons[latest.reason] ?? phases[latest.phase] ?? latest.phase}
     </p>}
+    {latest?.quality && <p className="mt-2 text-sm leading-6 text-slate-400">Kualitas evidence draft: {latest.quality.eligibleDrafts} eligible{latest.quality.averageOverall === undefined ? '' : ` · rata-rata gate ${latest.quality.averageOverall}/100`}. Ini bukan metrik performa konten.</p>}
     {status && <details className="mt-4 max-w-2xl text-sm text-slate-400"><summary className="cursor-pointer">Rincian proses</summary><dl className="mt-3 grid gap-3 sm:grid-cols-2"><Detail label="Pemeriksaan terakhir" value={date(status.lastCheck)} /><Detail label="Bahan diperiksa" value={`${status.sourceCount} · maks. 6 per jenis`} /></dl><p className="mt-3 leading-6">Worker berjalan di API meski halaman ditutup. Sumbernya feedback disetujui, DNA non-otomatis, dan narasi disetujui. Ini sintesis yang diperiksa model, bukan pelatihan ulang model atau bukti peningkatan kualitas terukur.</p></details>}
   </section>;
 }

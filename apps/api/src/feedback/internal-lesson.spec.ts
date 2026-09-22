@@ -1,5 +1,5 @@
 import { acceptsInternalLesson, parseInternalLesson } from './internal-lesson';
-import { evidenceFingerprint, InternalEvidenceService } from './internal-evidence.service';
+import { evidenceFingerprint, evidenceQuality, InternalEvidenceService } from './internal-evidence.service';
 
 const evidence = [
   { id: 'feedback:1', kind: 'feedback' as const, data: { notes: 'Contextual link missing; explain relevance.' } },
@@ -64,5 +64,18 @@ describe('Internal evidence selection', () => {
     expect(narratives.find).toHaveBeenCalledWith({ personaId: 'active', status: 'approved' });
     for (const source of [feedback, knowledge, narratives]) expect(source.query.limit).toHaveBeenCalledWith(6);
     expect(String(result.find((item) => item.kind === 'narrative')?.data.excerpt)).toHaveLength(1200);
+  });
+
+  it('excludes explicitly failed draft quality and aggregates passing draft quality only', async () => {
+    const feedback = model([]); const knowledge = model([]);
+    const narratives = model([
+      { _id: 'blocked', topic: 'topic', title: 'blocked', body: 'x', linkPlacement: 'ending', quality: { passed: false, overall: 0 } },
+      { _id: 'eligible', topic: 'topic', title: 'eligible', body: 'x', linkPlacement: 'ending', quality: { passed: true, overall: 88 } },
+    ]);
+    const result = await new InternalEvidenceService(feedback as never, knowledge as never, narratives as never).collect('active');
+
+    expect(result.map((item) => item.id)).toContain('narrative:eligible');
+    expect(result.map((item) => item.id)).not.toContain('narrative:blocked');
+    expect(evidenceQuality(result)).toEqual({ eligibleDrafts: 1, averageOverall: 88 });
   });
 });
