@@ -31,6 +31,22 @@ export class Persona {
 
   @Prop({ type: [String], default: [] })
   reasoningPatterns!: string[];
+
+  @Prop({ default: '' })
+  coreIdentity!: string;
+
+  @Prop({ default: '' })
+  claimBoundaries!: string;
+
+  @Prop({ type: [String], default: [] })
+  currentInterests!: string[];
+
+  @Prop({ default: false })
+  active!: boolean;
+
+  @Prop()
+  archivedAt?: Date;
 }
 
 export const PersonaSchema = SchemaFactory.createForClass(Persona);
+PersonaSchema.index({ active: 1 }, { unique: true, partialFilterExpression: { active: true } });

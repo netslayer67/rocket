@@ -5,7 +5,7 @@ import { Field, SectionCard } from './ui';
 
 type Progress = { action: ProgressAction; value: number; state: ProgressState; message?: string };
 
-export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { personas: Persona[]; busy: boolean; onGenerate: NarrativeSubmit; onSuggest: (url: string) => Promise<NarrativeSuggestion | undefined> }) {
+export function NarrativeForm({ persona, busy, onGenerate, onSuggest }: { persona?: Persona; busy: boolean; onGenerate: NarrativeSubmit; onSuggest: (url: string) => Promise<NarrativeSuggestion | undefined> }) {
   const formRef = useRef<HTMLFormElement>(null);
   const intervalRef = useRef<number | undefined>(undefined);
   const timeoutRef = useRef<number | undefined>(undefined);
@@ -20,7 +20,7 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     const form = event.currentTarget;
     const values = new FormData(form);
     setProgress({ action: 'generate', value: 8, state: 'pending' });
-    const saved = await onGenerate({ topic: String(values.get('topic')), personaId: String(values.get('personaId')), referenceTitle: optional(values.get('referenceTitle')), referenceUrl: optional(values.get('referenceUrl')) }, updateServerProgress);
+    const saved = await onGenerate({ topic: String(values.get('topic')), referenceTitle: optional(values.get('referenceTitle')), referenceUrl: optional(values.get('referenceUrl')) }, updateServerProgress);
     finishProgress(saved, intervalRef, timeoutRef, setProgress);
     if (saved) { form.reset(); setSuggestion(undefined); setAngleTitle(''); }
   }
@@ -29,7 +29,7 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     setProgress({ action: 'generate', value: event.progress, state: event.stage === 'error' ? 'error' : event.stage === 'complete' ? 'complete' : 'pending', message: event.message });
   }
 
-  const cannotGenerate = busy || personas.length === 0;
+  const cannotGenerate = busy || !persona;
   async function suggest() {
     const form = formRef.current;
     const url = String(new FormData(form ?? undefined).get('referenceUrl') ?? '').trim();
@@ -48,12 +48,12 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
     <SectionCard title="Buat draft narasi" description="Mulai dari topik atau fenomena. Referensi hanya dipakai jika hubungannya masuk akal." wide>
       <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
         <Field label="Topik atau fenomena" hint="Tulis hal yang ingin dibahas, bukan nama produknya."><input name="topic" required placeholder="Kenapa orang mudah percaya rumor" /></Field>
-        <Field label="Pakai suara"><select name="personaId" required defaultValue="" disabled={personas.length === 0}><option value="" disabled>{personas.length ? 'Pilih persona' : 'Buat suara terlebih dahulu'}</option>{personas.map((persona) => <option key={persona._id} value={persona._id}>{persona.name}</option>)}</select></Field>
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 px-3 py-2"><p className="text-xs font-medium text-slate-500">Karakter untuk draft ini</p><p className="mt-1 text-sm font-medium text-slate-100">{persona ? persona.name : 'Simpan karakter aktif terlebih dahulu'}</p></div>
         <Field label="Link referensi" hint="Tempel link jika ada; topik tetap boleh berbeda selama jembatannya jelas."><input name="referenceUrl" type="url" placeholder="https://... (opsional)" /></Field>
         <Field label="Judul referensi" hint="Boleh dikosongkan jika judul bisa dibaca dari link."><input name="referenceTitle" placeholder="Buku, artikel, repositori, atau produk" /></Field>
         <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center"><button className="button-secondary" type="button" disabled={busy} onClick={() => void suggest()}>{progress?.action === 'suggest' && progress.state === 'pending' ? `Mencari sudut • ${progress.value}%` : 'Cari sudut dari link'}</button><p className="text-xs leading-5 text-slate-500">Saran mengisi titik awal. Pilih sudut lalu edit sebelum membuat draft.</p></div>
         {suggestion && <AnglePicker suggestion={suggestion} value={angleTitle} onChange={(value) => { setAngleTitle(value); const form = formRef.current; if (form) setField(form, 'topic', value); }} />}
-        <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Menyusun draft • ${progress.value}%` : 'Buat draft untuk review'}</button>{!personas.length && <p className="mt-2 text-sm text-amber-200">Buat minimal satu suara tulisan sebelum membuat draft.</p>}</div>
+        <div className="md:col-span-2"><button className="button" disabled={cannotGenerate}>{progress?.action === 'generate' && progress.state === 'pending' ? `Menyusun draft • ${progress.value}%` : 'Buat draft untuk review'}</button>{!persona && <p className="mt-2 text-sm text-amber-200">Simpan karakter aktif sebelum membuat draft.</p>}</div>
         {progress && <ProgressIndicator action={progress.action} value={progress.value} state={progress.state} message={progress.message} />}
       </form>
     </SectionCard>

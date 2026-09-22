@@ -40,4 +40,19 @@ export class CreatePersonaDto {
   @IsArray()
   @IsString({ each: true })
   reasoningPatterns?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(360)
+  coreIdentity?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  claimBoundaries?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  currentInterests?: string[];
 }

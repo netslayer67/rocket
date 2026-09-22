@@ -20,13 +20,13 @@ export class InternalEvidenceService {
     @InjectModel(Narrative.name) private readonly narratives: Model<Narrative>,
   ) {}
 
-  async collect(): Promise<InternalEvidence[]> {
+  async collect(personaId: string): Promise<InternalEvidence[]> {
     // ponytail: latest six per source, not full-corpus coverage; add cursors when older coverage is required.
     const [feedback, dna, narratives] = await Promise.all([
-      this.feedback.find({ approvedForLearning: true }).sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
-      this.knowledge.find({ origin: { $ne: 'autonomous' }, sourceLabel: { $not: /^Feedback lesson / } })
+      this.feedback.find({ approvedForLearning: true, personaId }).sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
+      this.knowledge.find({ personaId, origin: { $ne: 'autonomous' }, sourceLabel: { $not: /^Feedback lesson / } })
         .sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
-      this.narratives.find({ status: 'approved' }).sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
+      this.narratives.find({ personaId, status: 'approved' }).sort({ createdAt: -1, _id: -1 }).limit(6).lean(),
     ]);
     return [
       ...feedback.map((item): InternalEvidence => ({ id: `feedback:${item._id}`, kind: 'feedback', data: {
@@ -44,8 +44,8 @@ export class InternalEvidenceService {
     ].sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  async recentLessons() {
-    const records = await this.knowledge.find().sort({ createdAt: -1, _id: -1 }).limit(30)
+  async recentLessons(personaId: string) {
+    const records = await this.knowledge.find({ personaId }).sort({ createdAt: -1, _id: -1 }).limit(30)
       .select('patternSummary diagnosis rootCause recommendedFix').lean();
     return records.map((item) => ({ patternSummary: text(item.patternSummary), diagnosis: text(item.diagnosis),
       rootCause: text(item.rootCause), recommendedFix: text(item.recommendedFix) }));

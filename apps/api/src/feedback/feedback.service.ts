@@ -15,8 +15,9 @@ export class FeedbackService {
   ) {}
 
   async create(dto: CreateFeedbackDto) {
-    if (!await this.narratives.exists({ _id: dto.narrativeId })) throw new NotFoundException('Narrative tidak ditemukan');
-    const item = await this.feedback.create({ ...dto, scores: normalizeScores(dto.scores), notes: dto.notes?.trim() ?? '' });
+    const narrative = await this.narratives.findById(dto.narrativeId).lean();
+    if (!narrative) throw new NotFoundException('Narrative tidak ditemukan');
+    const item = await this.feedback.create({ ...dto, personaId: narrative.personaId, scores: normalizeScores(dto.scores), notes: dto.notes?.trim() ?? '' });
     if (dto.approvedForLearning) await this.learning.learnOne(String(item._id));
     return this.feedback.findById(item._id).lean();
   }

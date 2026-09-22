@@ -12,9 +12,10 @@ import { Knowledge, KnowledgeSchema } from '../knowledge/schemas/knowledge.schem
 import { AutonomousLearningService } from './autonomous-learning.service';
 import { InternalEvidenceService } from './internal-evidence.service';
 import { LearningCycle, LearningCycleSchema } from './schemas/learning-cycle.schema';
+import { PersonasModule } from '../personas/personas.module';
 
 @Module({
-  imports: [KnowledgeModule, AiModule, MongooseModule.forFeature([
+  imports: [KnowledgeModule, AiModule, PersonasModule, MongooseModule.forFeature([
     { name: Feedback.name, schema: FeedbackSchema }, { name: LearningLog.name, schema: LearningLogSchema }, { name: Narrative.name, schema: NarrativeSchema },
     { name: Knowledge.name, schema: KnowledgeSchema }, { name: LearningCycle.name, schema: LearningCycleSchema },
   ])],

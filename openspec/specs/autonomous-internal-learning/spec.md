@@ -7,14 +7,14 @@ Consolidate approved internal writing evidence into bounded, provisional knowled
 ## Requirements
 
 ### Requirement: Approved internal evidence only
-The system SHALL autonomously consolidate at most six recent approved feedback items, six non-autonomous DNA records, and six approved narratives per batch. It MUST exclude drafts, unapproved feedback, and its own autonomous outputs, and revalidate source eligibility before saving. Imported source bodies MUST NOT be persisted or logged.
+The system SHALL autonomously consolidate at most six recent approved feedback items, six non-autonomous DNA records, and six approved narratives per batch for the active persona. It MUST exclude drafts, unapproved feedback, archived-persona records, unscoped legacy DNA, and its own autonomous outputs, and revalidate source eligibility before saving. Imported source bodies MUST NOT be persisted or logged.
 
-#### Scenario: Eligible internal inputs
-- **WHEN** approved internal evidence exists
+#### Scenario: Eligible active-persona inputs
+- **WHEN** approved active-persona evidence exists
 - **THEN** the worker can process it without browser traffic or a button press
 
-#### Scenario: Unapproved or self-generated inputs
-- **WHEN** inputs are drafts, unapproved feedback, or autonomous DNA
+#### Scenario: Archived, unapproved, or self-generated inputs
+- **WHEN** inputs belong to an archived persona, are unscoped legacy DNA, drafts, unapproved feedback, or autonomous DNA
 - **THEN** they cannot become learning evidence
 
 ### Requirement: Diagnosis-first reviewed consolidation

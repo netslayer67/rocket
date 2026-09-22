@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, startNarrativeJob, watchNarrativeJob } from '@/lib/api';
-import type { AnalyticsInput, AnalyticsInsight, AnalyticsSummary, FeedbackInput, Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeProgress, NarrativeSuggestion, Persona, PersonaInput, ThreadsStatus } from '@/lib/types';
+import type { AnalyticsInput, AnalyticsInsight, AnalyticsSummary, FeedbackInput, Knowledge, KnowledgeInput, Narrative, NarrativeInput, NarrativeProgress, NarrativeSuggestion, Persona, PersonaInput, PersonaQuality, ThreadsStatus } from '@/lib/types';
 
 export function useStudio() {
   const [personas, setPersonas] = useState<Persona[]>([]);
+  const [personaQuality, setPersonaQuality] = useState<PersonaQuality>({ windowDays: 30, drafts: 0, persona: 0, specificity: 0, generic: 0, productInjection: 0 });
   const [knowledge, setKnowledge] = useState<Knowledge[]>([]);
   const [narratives, setNarratives] = useState<Narrative[]>([]);
   const [threads, setThreads] = useState<ThreadsStatus>({ configured: false, connected: false });
@@ -16,8 +17,9 @@ export function useStudio() {
   const refresh = useCallback(async () => {
     const sequence = ++refreshSequence.current;
     try {
-      const [nextPersonas, nextKnowledge, nextNarratives, nextThreads, nextAnalytics, nextInsights] = await Promise.all([
+      const [nextPersonas, nextPersonaQuality, nextKnowledge, nextNarratives, nextThreads, nextAnalytics, nextInsights] = await Promise.all([
         api<Persona[]>('/personas'),
+        api<PersonaQuality>('/personas/quality'),
         api<Knowledge[]>('/knowledge'),
         api<Narrative[]>('/narratives'),
         api<ThreadsStatus>('/threads/status'),
@@ -26,6 +28,7 @@ export function useStudio() {
       ]);
       if (sequence !== refreshSequence.current) return;
       setPersonas(nextPersonas);
+      setPersonaQuality(nextPersonaQuality);
       setKnowledge(nextKnowledge);
       setNarratives(nextNarratives);
       setThreads(nextThreads);
@@ -97,6 +100,7 @@ export function useStudio() {
 
   return {
     personas,
+    personaQuality,
     knowledge,
     narratives,
     threads,
@@ -105,7 +109,7 @@ export function useStudio() {
     message,
     busy,
     refresh,
-    createPersona: (input: PersonaInput) => run(() => api('/personas', { method: 'POST', body: JSON.stringify(input) }), 'Persona tersimpan.'),
+    savePersona: (input: PersonaInput) => run(() => api('/personas/active', { method: 'PUT', body: JSON.stringify(input) }), 'Profil aktif tersimpan.'),
     importKnowledge: (input: KnowledgeInput) => run(() => api('/knowledge/import', { method: 'POST', body: JSON.stringify(input) }), 'Pola tersimpan; isi sumber tidak disimpan.'),
     reindexKnowledge: () => run(() => api('/knowledge/reindex', { method: 'POST' }), 'Knowledge berhasil diperiksa dan diindeks ulang.'),
     generate,

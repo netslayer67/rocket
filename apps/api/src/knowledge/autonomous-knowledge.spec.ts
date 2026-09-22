@@ -12,13 +12,13 @@ describe('Idempotent autonomous knowledge persistence', () => {
     const record = { _id: 'saved', vectorStatus: 'pending', save: jest.fn() };
     const model = { findOneAndUpdate: jest.fn().mockResolvedValue(record) };
     const vectors = { index: jest.fn().mockResolvedValue({ status: 'ready', embeddingModel: 'embed:free' }) };
-    const service = new KnowledgeService(model as never, {} as never, vectors as never);
-    await service.createAutonomousLesson({ patternSummary: 'metadata' } as never, 'fingerprint', ['feedback:a', 'dna:b']);
-    expect(model.findOneAndUpdate).toHaveBeenCalledWith({ learningKey: 'fingerprint' }, { $setOnInsert: expect.objectContaining({
-      origin: 'autonomous', evidenceIds: ['feedback:a', 'dna:b'], learningKey: 'fingerprint',
+    const service = new KnowledgeService(model as never, {} as never, vectors as never, { findActive: jest.fn().mockResolvedValue({ _id: 'active' }) } as never);
+    await service.createAutonomousLesson({ patternSummary: 'metadata' } as never, 'fingerprint', ['feedback:a', 'dna:b'], 'active');
+    expect(model.findOneAndUpdate).toHaveBeenCalledWith({ learningKey: 'fingerprint', personaId: 'active' }, { $setOnInsert: expect.objectContaining({
+      origin: 'autonomous', personaId: 'active', evidenceIds: ['feedback:a', 'dna:b'], learningKey: 'fingerprint',
     }) }, expect.objectContaining({ upsert: true, new: true, runValidators: true }));
     expect(vectors.index).toHaveBeenCalledWith(record, true);
-    await service.createAutonomousLesson({ patternSummary: 'retry' } as never, 'fingerprint', ['feedback:a', 'dna:b']);
+    await service.createAutonomousLesson({ patternSummary: 'retry' } as never, 'fingerprint', ['feedback:a', 'dna:b'], 'active');
     expect(vectors.index).toHaveBeenCalledTimes(1);
     expect(KnowledgeSchema.indexes()).toEqual(expect.arrayContaining([
       [expect.objectContaining({ learningKey: 1 }), expect.objectContaining({ unique: true, sparse: true })],

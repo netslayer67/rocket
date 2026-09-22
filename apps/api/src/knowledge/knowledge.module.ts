@@ -5,9 +5,10 @@ import { KnowledgeController } from './knowledge.controller';
 import { KnowledgeService } from './knowledge.service';
 import { Knowledge, KnowledgeSchema } from './schemas/knowledge.schema';
 import { VectorIndexService } from './vector-index.service';
+import { PersonasModule } from '../personas/personas.module';
 
 @Module({
-  imports: [AiModule, MongooseModule.forFeature([{ name: Knowledge.name, schema: KnowledgeSchema }])],
+  imports: [AiModule, PersonasModule, MongooseModule.forFeature([{ name: Knowledge.name, schema: KnowledgeSchema }])],
   controllers: [KnowledgeController],
   providers: [KnowledgeService, VectorIndexService],
   exports: [KnowledgeService],

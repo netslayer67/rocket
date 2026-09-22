@@ -9,6 +9,10 @@ export type Persona = {
   thinkingStyle?: string;
   observationStyle?: string;
   reasoningPatterns?: string[];
+  coreIdentity?: string;
+  claimBoundaries?: string;
+  currentInterests?: string[];
+  active?: boolean;
 };
 
 export type Knowledge = {
@@ -47,9 +51,9 @@ export type ThreadsStatus = {
   expiresAt?: string;
 };
 
-export type PersonaInput = Omit<Persona, '_id'>;
+export type PersonaInput = Omit<Persona, '_id' | 'active'>;
 export type KnowledgeInput = { sourceLabel: string; sourceUrl?: string; content: string };
-export type NarrativeInput = { topic: string; personaId: string; referenceTitle?: string; referenceUrl?: string };
+export type NarrativeInput = { topic: string; referenceTitle?: string; referenceUrl?: string };
 export type ReferenceAngle = { title: string; confidence: number; reason: string; evidence: string[] };
 export type ReferenceMetadata = { host: string; title: string; description: string; type?: 'article' | 'product' | 'book' | 'video' | 'website'; siteName?: string; author?: string; section?: string; publishedAt?: string; price?: string; currency?: string; canonicalUrl?: string };
 export type NarrativeSuggestion = {
@@ -77,3 +81,4 @@ export type LearningStatus = {
 };
 export type MonitoringSnapshot = { source: 'persisted metadata'; windowStart: string; generatedAt: string; events: MonitoringEvent[]; learning?: LearningStatus; summary: { total: number; activeAgents: string[]; activeModels: string[]; byKind: Record<MonitoringKind, number> } };
 export type MonitoringStreamEvent = { at?: string; source?: string; message?: string } | MonitoringSnapshot;
+export type PersonaQuality = { windowDays: number; drafts: number; persona: number; specificity: number; generic: number; productInjection: number };

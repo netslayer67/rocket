@@ -8,6 +8,9 @@ export class Feedback {
   @Prop({ type: Types.ObjectId, required: true, ref: 'Narrative' })
   narrativeId!: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Persona' })
+  personaId?: Types.ObjectId;
+
   @Prop({ enum: ['positive', 'negative'], required: true })
   lessonType!: 'positive' | 'negative';
 

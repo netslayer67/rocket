@@ -3,7 +3,7 @@ import type { Knowledge, Narrative, Persona } from '@/lib/types';
 export function Overview({ personas, knowledge, narratives }: { personas: Persona[]; knowledge: Knowledge[]; narratives: Narrative[] }) {
   const approved = narratives.filter((narrative) => narrative.status === 'approved').length;
   const stats = [
-    ['Persona', personas.length, personas.length ? 'Siap dipakai' : 'Belum dibuat'],
+    ['Karakter aktif', personas.length, personas.length ? 'Siap dipakai' : 'Belum dibuat'],
     ['Pola', knowledge.length, knowledge.length ? 'Sudah dipelajari' : 'Belum ada pola'],
     ['Draft disetujui', approved, `${narratives.length} draft tersimpan`],
   ];

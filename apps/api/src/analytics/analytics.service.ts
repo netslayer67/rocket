@@ -49,6 +49,7 @@ export class AnalyticsService {
     if (!this.knowledge) throw new BadRequestException('Knowledge learning is not configured.');
     const narrative = await this.narratives.findById(narrativeId).lean();
     if (!narrative) throw new NotFoundException('Narrative tidak ditemukan');
+    if (!narrative.personaId) throw new BadRequestException('Narasi lama belum terhubung ke persona aktif.');
     if (narrative.outcomeKnowledgeId) return { status: 'already-promoted', knowledgeId: String(narrative.outcomeKnowledgeId) };
     const candidate = (await this.insights()).find((item) => item?.narrativeId === narrativeId);
     if (!candidate) throw new BadRequestException('Belum ada analytics manual untuk dipromosikan.');
@@ -58,7 +59,7 @@ export class AnalyticsService {
       linkPlacement: narrative.linkPlacement, patternSummary: dto.notes?.trim().slice(0, 700) || `Manual outcome: ${candidate.views} views, ${candidate.clicks} clicks, ${candidate.samples} capture.`, conflict: `CTR ${candidate.ctr ?? 'n/a'}; engagement ${candidate.engagementRate ?? 'n/a'}`,
       persona: 'outcome evidence', style: 'measured and diagnosis-first', vocabulary: [], informationGap: '', discussionPattern: 'compare measured outcomes', authorityType: 'manual analytics', ctaStyle: 'reference', naturalness: dto.lessonType === 'positive' ? 4 : 2,
       lessonType: dto.lessonType, diagnosis: `Signal observed from ${candidate.samples} manual capture; this is not a causal claim.`, rootCause: 'Outcome pattern requires more reviewed examples before generalization.', recommendedFix: dto.notes?.trim().slice(0, 700) || 'Compare this signal with future captures before changing generation.', failureDimensions: dto.lessonType === 'negative' ? ['narrative', 'reference'] : [], evidenceSources: ['manual-analytics'],
-    });
+    }, String(narrative.personaId));
     await this.narratives.updateOne({ _id: narrativeId }, { outcomeKnowledgeId: lesson._id, outcomePromotedAt: new Date() });
     return { status: 'promoted', knowledgeId: String(lesson._id), candidate: { ...candidate, status: 'promoted' as const } };
   }

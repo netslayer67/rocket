@@ -7,6 +7,7 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import { evidenceFingerprint, InternalEvidenceService } from './internal-evidence.service';
 import { acceptsInternalLesson, learningSystem, parseInternalLesson, reviewSystem } from './internal-lesson';
 import { LearningCycle } from './schemas/learning-cycle.schema';
+import { PersonasService } from '../personas/personas.service';
 
 const activePhases = ['synthesizing', 'validating', 'saving'];
 const dailyLimit = 4;
@@ -29,6 +30,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
     private readonly evidence: InternalEvidenceService,
     private readonly ai: AiOrchestratorService,
     private readonly knowledge: KnowledgeService,
+    private readonly personas: PersonasService,
   ) {}
 
   get enabled() {
@@ -79,14 +81,17 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
     try {
       await this.cycles.updateMany({ phase: { $in: activePhases }, updatedAt: { $lt: new Date(Date.now() - retryDelay) } },
         { $set: { phase: 'failed', reason: 'interrupted', finishedAt: new Date() } });
-      const evidence = await this.evidence.collect();
+      const active = await this.personas.findActive();
+      if (!active) return this.state('waiting', 'missing_active_persona');
+      const personaId = String(active._id);
+      const evidence = await this.evidence.collect(personaId);
       this.sourceCount = evidence.length;
       if (evidence.length < 2) return this.state('waiting', 'insufficient_evidence');
       const fingerprint = evidenceFingerprint(evidence);
       const previous = await this.cycles.findOne({ fingerprint }).sort({ createdAt: -1 }).lean();
       if (previous && ['complete', 'rejected'].includes(previous.phase)) return this.state('waiting', 'unchanged_evidence');
       if (previous) {
-        const saved = await this.knowledge.findAutonomousLesson(fingerprint);
+        const saved = await this.knowledge.findAutonomousLesson(fingerprint, personaId);
         if (saved) {
           const reason = saved.vectorStatus === 'ready' ? 'lesson_saved' : 'lesson_saved_index_pending';
           await this.cycles.updateOne({ _id: previous._id }, { $set: { phase: 'complete', reason, knowledgeId: String(saved._id), finishedAt: new Date() } });
@@ -103,7 +108,7 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
         evidenceIds: evidence.map((item) => item.id), phase: 'synthesizing' });
       try {
         this.state('synthesizing', 'processing_evidence');
-        const existing = await this.evidence.recentLessons();
+        const existing = await this.evidence.recentLessons(personaId);
         const result = await this.ai.complete({ task: 'internal-learning', system: learningSystem,
           prompt: JSON.stringify({ evidence, existing }), maxTokens: 3200, json: true, freeOnly: true });
         if (result.mode !== 'live') throw new ServiceUnavailableException();
@@ -120,13 +125,13 @@ export class AutonomousLearningService implements OnModuleInit, OnModuleDestroy 
         if (review.mode !== 'live') throw new ServiceUnavailableException();
         cycle.models.push(review.model);
         if (!acceptsInternalLesson(review.content)) return await this.finish(cycle, 'rejected', 'review_rejected');
-        if (this.stopped || evidenceFingerprint(await this.evidence.collect()) !== fingerprint) {
+        if (this.stopped || evidenceFingerprint(await this.evidence.collect(personaId)) !== fingerprint) {
           return await this.finish(cycle, 'rejected', 'sources_changed');
         }
         cycle.phase = 'saving';
         await cycle.save();
         this.state('saving', 'saving_knowledge');
-        const record = await this.knowledge.createAutonomousLesson(candidate.pattern, fingerprint, candidate.evidenceIds);
+        const record = await this.knowledge.createAutonomousLesson(candidate.pattern, fingerprint, candidate.evidenceIds, personaId);
         cycle.knowledgeId = String(record._id);
         await this.finish(cycle, 'complete', record.vectorStatus === 'ready' ? 'lesson_saved' : 'lesson_saved_index_pending');
       } catch (error) {

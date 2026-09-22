@@ -27,7 +27,7 @@ describe('V1 regression smoke path', () => {
     let persisted = false;
     jobs.events(jobId).subscribe({ next: (event) => { events.push(event.type ?? ''); if (event.type === 'complete') expect(persisted).toBe(true); } });
     const runner = new NarrativeJobRunner({ generate: jest.fn(async (_dto, progress) => { progress('generating', 20, 'Menyusun.'); progress('saved', 90, 'Tersimpan.'); persisted = true; return saved; }) } as never, jobs);
-    await runner.run(jobId, { topic: saved.topic, personaId: narrativeId });
+    await runner.run(jobId, { topic: saved.topic });
     expect(events).toEqual(['queued', 'generating', 'saved', 'complete']);
     jest.runAllTimers();
 
@@ -56,8 +56,8 @@ describe('V1 regression smoke path', () => {
     };
     const logModel = { exists: jest.fn(async ({ feedbackId }) => logs.has(String(feedbackId))), create: jest.fn(async (row) => { logs.add(String(row.feedbackId)); return row; }) };
     const knowledge = { createLesson: jest.fn(async (input) => { const lesson = { ...input, _id: `lesson-${lessons.length + 1}`, vectorStatus: 'ready' }; lessons.push(lesson); return lesson; }) };
-    const learning = new LearningService(feedbackModel as never, logModel as never, { findById: jest.fn(() => ({ lean: jest.fn().mockResolvedValue(current) })) } as never, knowledge as never, { get: jest.fn() } as never);
-    const feedback = new FeedbackService(feedbackModel as never, { exists: jest.fn().mockResolvedValue(true) } as never, learning);
+    const learning = new LearningService(feedbackModel as never, logModel as never, { findById: jest.fn(() => ({ lean: jest.fn().mockResolvedValue(current) })) } as never, knowledge as never, { get: jest.fn() } as never, { findActive: jest.fn().mockResolvedValue({ _id: narrativeId }) } as never);
+    const feedback = new FeedbackService(feedbackModel as never, { findById: jest.fn(() => ({ lean: jest.fn().mockResolvedValue(current) })) } as never, learning);
     await feedback.create({ narrativeId, lessonType: 'negative', scores: { hook: 2, naturalness: 3 }, notes: 'Hook terlalu umum.', approvedForLearning: true });
     await feedback.create({ narrativeId, lessonType: 'positive', scores: { hook: 9, naturalness: 8 }, notes: 'Observasi terasa hidup.', approvedForLearning: true });
     expect(lessons).toHaveLength(2);

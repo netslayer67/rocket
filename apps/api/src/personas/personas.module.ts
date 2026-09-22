@@ -3,9 +3,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PersonasController } from './personas.controller';
 import { PersonasService } from './personas.service';
 import { Persona, PersonaSchema } from './schemas/persona.schema';
+import { Narrative, NarrativeSchema } from '../narratives/schemas/narrative.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Persona.name, schema: PersonaSchema }])],
+  imports: [MongooseModule.forFeature([{ name: Persona.name, schema: PersonaSchema }, { name: Narrative.name, schema: NarrativeSchema }])],
   controllers: [PersonasController],
   providers: [PersonasService],
   exports: [PersonasService],

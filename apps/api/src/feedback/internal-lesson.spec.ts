@@ -58,10 +58,10 @@ describe('Internal evidence selection', () => {
     const knowledge = model([{ _id: 'k', topics: ['topic'], patternSummary: 'metadata' }]);
     const narratives = model([{ _id: 'n', topic: 'topic', title: 'title', body: 'x'.repeat(3000), linkPlacement: 'ending' }]);
     const service = new InternalEvidenceService(feedback as never, knowledge as never, narratives as never);
-    const result = await service.collect();
-    expect(feedback.find).toHaveBeenCalledWith({ approvedForLearning: true });
-    expect(knowledge.find).toHaveBeenCalledWith({ origin: { $ne: 'autonomous' }, sourceLabel: { $not: /^Feedback lesson / } });
-    expect(narratives.find).toHaveBeenCalledWith({ status: 'approved' });
+    const result = await service.collect('active');
+    expect(feedback.find).toHaveBeenCalledWith({ approvedForLearning: true, personaId: 'active' });
+    expect(knowledge.find).toHaveBeenCalledWith({ personaId: 'active', origin: { $ne: 'autonomous' }, sourceLabel: { $not: /^Feedback lesson / } });
+    expect(narratives.find).toHaveBeenCalledWith({ personaId: 'active', status: 'approved' });
     for (const source of [feedback, knowledge, narratives]) expect(source.query.limit).toHaveBeenCalledWith(6);
     expect(String(result.find((item) => item.kind === 'narrative')?.data.excerpt)).toHaveLength(1200);
   });

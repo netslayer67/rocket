@@ -31,7 +31,8 @@ function setup(settings: Record<string, string> = { AUTONOMOUS_LEARNING_ENABLED:
   ) })) };
   const knowledge = { createAutonomousLesson: jest.fn().mockResolvedValue({ _id: 'knowledge', vectorStatus: 'ready' }), findAutonomousLesson: jest.fn().mockResolvedValue(null) };
   const config = { get: (key: string, fallback?: string) => settings[key] ?? fallback };
-  const restart = () => new AutonomousLearningService(config as never, cycles as never, evidence as never, ai as never, knowledge as never);
+  const personas = { findActive: jest.fn().mockResolvedValue({ _id: 'active' }) };
+  const restart = () => new AutonomousLearningService(config as never, cycles as never, evidence as never, ai as never, knowledge as never, personas as never);
   return { service: restart(), restart, cycles, rows, evidence, ai, knowledge };
 }
 

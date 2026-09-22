@@ -5,7 +5,7 @@ describe('FeedbackService', () => {
     const learning = { learnOne: jest.fn().mockResolvedValue('processed') };
     const service = new FeedbackService(
       { create: jest.fn().mockResolvedValue({ _id: 'feedback-1' }), findById: jest.fn(() => ({ lean: jest.fn().mockResolvedValue({ _id: 'feedback-1' }) })) } as never,
-      { exists: jest.fn().mockResolvedValue(true) } as never,
+      { findById: jest.fn(() => ({ lean: jest.fn().mockResolvedValue({ _id: 'narrative-1', personaId: 'active' }) })) } as never,
       learning as never,
     );
     await service.create({ narrativeId: '507f1f77bcf86cd799439011', lessonType: 'negative', scores: { hook: 2 }, approvedForLearning: true });

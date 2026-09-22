@@ -38,7 +38,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 
 ## Core flow
 
-1. A user creates a persona.
+1. A user creates or updates one active persona. Legacy personas are archived for history; new drafts cannot select them.
 2. A source thread is submitted once for extraction; the raw body is not persisted.
 3. A compact metadata document is embedded through the orchestrator and indexed in Qdrant.
 4. Knowledge retrieval merges bounded semantic matches with lexical topic matches, deduplicates Mongo IDs, and uses recent patterns only when both query paths are empty.
@@ -52,7 +52,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 12. An operator can enter observed metrics to derive CTR and engagement; a read-only insights endpoint groups bounded rows into manual outcome candidates, and an explicit approval endpoint promotes one candidate through KnowledgeService into diagnosis-first DNA. No automatic promotion or causal claim is made.
 13. An operator can manually crawl a creator-selected public URL with Scrapy; its transient text enters the existing knowledge-import flow.
 14. An operator can manually run Nutch to discover bounded same-domain URLs, then individually choose a URL for Scrapy import.
-15. The Railway API autonomously checks approved internal evidence every five minutes without browser traffic. At most six records of each source type enter one fingerprinted batch. A free model synthesizes one diagnosis; a second free-model call checks grounding, novelty and context. Accepted metadata is saved once with source IDs and reused by existing retrieval, with a provisional-synthesis caveat in narrative prompts. Drafts, raw imported bodies, autonomous DNA inputs, publishing, and analytics candidates are excluded.
+15. The Railway API autonomously checks approved evidence for the active persona every five minutes without browser traffic. At most six records of each source type enter one fingerprinted batch. A free model synthesizes one diagnosis; a second free-model call checks grounding, novelty and context. Accepted metadata is saved once with source IDs and reused by that persona's retrieval, with a provisional-synthesis caveat in narrative prompts. Drafts, raw imported bodies, archived-persona records, unscoped legacy DNA, autonomous DNA inputs, publishing, and analytics candidates are excluded.
 
 ## Autonomous learning operations
 
@@ -76,6 +76,7 @@ All autonomous completions and embeddings are free-only (zero-price provider rou
 - A failed semantic index marks a record `pending`; it never blocks metadata import.
 - Threads email, password, and plaintext access tokens are never persisted or returned by the API.
 - Feedback must be explicitly approved for learning; a learning run never publishes content.
+- New knowledge and learning evidence are scoped to the active persona. Legacy unscoped metadata is retained but cannot influence new generation.
 - Outcome promotion must be explicitly approved, typed positive/negative, idempotent, and linked back to its narrative.
 - Outcome candidates are provisional observations; they never create DNA without explicit approved feedback.
 - Crawler pages obey robots.txt, stay bounded to a public seed domain, and never persist raw fetched text or Nutch artifacts.

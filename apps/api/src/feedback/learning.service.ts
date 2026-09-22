@@ -6,6 +6,7 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import { Feedback } from './schemas/feedback.schema';
 import { LearningLog } from './schemas/learning-log.schema';
 import { Narrative } from '../narratives/schemas/narrative.schema';
+import { PersonasService } from '../personas/personas.service';
 
 @Injectable()
 export class LearningService implements OnModuleInit, OnModuleDestroy {
@@ -17,6 +18,7 @@ export class LearningService implements OnModuleInit, OnModuleDestroy {
     @InjectModel(Narrative.name) private readonly narratives: Model<Narrative>,
     private readonly knowledge: KnowledgeService,
     private readonly config: ConfigService,
+    private readonly personas: PersonasService,
   ) {}
 
   onModuleInit() {
@@ -46,6 +48,8 @@ export class LearningService implements OnModuleInit, OnModuleDestroy {
     if (await this.logs.exists({ feedbackId: item._id })) return 'skipped' as const;
     const narrative = await this.narratives.findById(item.narrativeId).lean();
     if (!narrative) return 'failed' as const;
+    const active = await this.personas.findActive();
+    if (!active || String(narrative.personaId) !== String(active._id)) return 'skipped' as const;
     try {
       const weakest = weakestDimension(item.scores);
       const lesson = await this.knowledge.createLesson({
@@ -59,7 +63,7 @@ export class LearningService implements OnModuleInit, OnModuleDestroy {
         diagnosis: item.notes?.slice(0, 700) || `Dimensi terlemah: ${weakest.dimension} (${weakest.score}/10)`,
         rootCause: `Review score terendah ada pada ${weakest.dimension}.`, recommendedFix: fixFor(weakest.dimension),
         failureDimensions: item.lessonType === 'negative' ? [weakest.dimension] : [], evidenceSources: ['reviewer-feedback'],
-      }, true);
+      }, String(active._id), true);
       await this.feedback.updateOne({ _id: item._id }, { learnedAt: new Date(), knowledgeId: lesson._id });
       await this.logs.create({ feedbackId: item._id, knowledgeId: lesson._id, status: 'complete' });
       return 'processed' as const;

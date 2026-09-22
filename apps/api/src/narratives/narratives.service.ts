@@ -14,8 +14,7 @@ import { ThreadsService } from '../threads/threads.service';
 import { Optional } from '@nestjs/common';
 import { demoSuggestion, parseSuggestion, patternContext, suggestionPrompt } from './narrative-parsers';
 import { diagnoseReviewNotes } from './narrative-diagnostics';
-type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>;
-type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'> & Partial<Pick<Persona, 'thinkingStyle' | 'observationStyle' | 'reasoningPatterns'>>;
+type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>; type PersonaShape = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'> & Partial<Pick<Persona, 'thinkingStyle' | 'observationStyle' | 'reasoningPatterns'>>;
 export type NarrativeProgress = (stage: 'generating' | 'reviewing' | 'saved', progress: number, message: string) => void;
 
 @Injectable()
@@ -30,13 +29,14 @@ export class NarrativesService {
 
   async generate(dto: GenerateNarrativeDto, onProgress?: NarrativeProgress) {
     onProgress?.('generating', 20, 'Mencari pola yang relevan dan menyusun narasi.');
-    const persona = await this.personas.findById(dto.personaId);
+    const persona = await this.personas.findActive();
     if (!persona) throw new NotFoundException('Persona tidak ditemukan');
     const reference = await this.resolveReference(dto);
+    const personaId = String(persona._id);
     const retrieval = this.knowledge.findRelevantWithMeta
-      ? await this.knowledge.findRelevantWithMeta(dto.topic)
-      : { records: await this.knowledge.findRelevant(dto.topic), metadata: { mode: 'empty' as const, semanticCount: 0, lexicalCount: 0, knowledgeIds: [] } };
-    const patterns = retrieval.records.length ? retrieval.records : await this.knowledge.findRelevant(dto.topic);
+      ? await this.knowledge.findRelevantWithMeta(dto.topic, personaId)
+      : { records: await this.knowledge.findRelevant(dto.topic, personaId), metadata: { mode: 'empty' as const, semanticCount: 0, lexicalCount: 0, knowledgeIds: [] } };
+    const patterns = retrieval.records.length ? retrieval.records : await this.knowledge.findRelevant(dto.topic, personaId);
     const result = await this.ai.complete({
       task: 'narrative',
       system:
@@ -67,7 +67,7 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
 
     const saved = await this.narratives.create({
       topic: dto.topic,
-      personaId: dto.personaId,
+      personaId,
       referenceTitle: reference.title,
       referenceUrl: reference.url,
       ...rewritten.draft,
