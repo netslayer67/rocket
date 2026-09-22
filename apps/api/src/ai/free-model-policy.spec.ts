@@ -69,12 +69,22 @@ describe('Autonomous free-only AI routing', () => {
     expect(result.model).toBe('second:free');
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toMatchObject({ model: 'first:free', provider: freeProvider });
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).not.toHaveProperty('response_format');
     expect(runs.create.mock.calls.map(([entry]) => entry)).toEqual(expect.arrayContaining([
       expect.objectContaining({ model: 'first:free', accepted: false, rejection: 'voice-quality' }),
       expect.objectContaining({ model: 'second:free', accepted: true }),
     ]));
     expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
     expect(JSON.stringify(runs.create.mock.calls)).not.toContain('generic');
+  });
+
+  it('keeps strict JSON formatting for non-persona structured requests', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '{}' } }] }) });
+    const { service } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'standard/model' });
+
+    await service.complete({ task: 'narrative', system: 'structured', prompt: 'safe', maxTokens: 20, json: true });
+
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toMatchObject({ response_format: { type: 'json_object' } });
   });
 
   it('bounds named persona models to four free candidates', () => {

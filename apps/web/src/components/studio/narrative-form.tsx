@@ -88,7 +88,7 @@ function beginProgress(action: ProgressAction, intervalRef: React.MutableRefObje
 
 function finishProgress(success: boolean, intervalRef: React.MutableRefObject<number | undefined>, timeoutRef: React.MutableRefObject<number | undefined>, setProgress: React.Dispatch<React.SetStateAction<Progress | undefined>>) {
   if (intervalRef.current) window.clearInterval(intervalRef.current);
-  setProgress((current) => current ? { ...current, value: 100, state: success ? 'complete' : 'error' } : current);
+  setProgress((current) => current ? { ...current, value: success ? 100 : current.value, state: success ? 'complete' : 'error' } : current);
   timeoutRef.current = window.setTimeout(() => setProgress(undefined), 900);
 }
 

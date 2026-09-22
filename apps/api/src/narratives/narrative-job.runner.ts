@@ -13,7 +13,7 @@ export class NarrativeJobRunner {
       this.jobs.emit(id, 'complete', 100, 'Draft tersimpan dan siap direview.', { narrative });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Draft tidak dapat dibuat.';
-      this.jobs.emit(id, 'error', 100, 'Pembuatan draft gagal.', { error: message });
+      this.jobs.emit(id, 'error', 95, 'Pembuatan draft gagal.', { error: message });
     }
   }
 }

@@ -16,7 +16,7 @@ The API SHALL create a bounded narrative generation job, return a unique `jobId`
 - **THEN** the API returns `text/event-stream` events for that job or a clear not-found error for an unknown or expired job
 
 ### Requirement: Generation lifecycle events
-The SSE stream SHALL emit named, JSON-encoded lifecycle events for queued, generating, reviewing, saved, complete, and error states.
+The SSE stream SHALL emit named, JSON-encoded lifecycle events for queued, generating, reviewing, saved, complete, and error states. A terminal error SHALL carry an incomplete progress value below 100 and a user-safe message.
 
 #### Scenario: Draft succeeds
 - **WHEN** generation, review, and persistence complete
@@ -24,7 +24,7 @@ The SSE stream SHALL emit named, JSON-encoded lifecycle events for queued, gener
 
 #### Scenario: Draft fails
 - **WHEN** any generation or persistence step fails
-- **THEN** the stream emits `error` with a user-safe message and never emits a false `complete` event
+- **THEN** the stream emits `error` with a user-safe message, an incomplete progress value, and never emits a false `complete` event
 
 ### Requirement: Stream safety
 The job stream SHALL emit only progress metadata and the persisted narrative result, never prompts, raw imported source text, credentials, or access tokens.

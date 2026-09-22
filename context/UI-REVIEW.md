@@ -35,3 +35,12 @@ Route: `/monitoring`, local production build, Chromium with deterministic API fi
 - Motion: reduced-motion emulation confirmed `animation-name: none` on active nodes. Waiting state has no active learning nodes; actual worker synthesis activates only the internal-source/learning path.
 - Typography/contrast: new panel text is at least 14px. Slate-400 or brighter text replaces the low-contrast slate-500 labels on the touched map, summary and timeline. Sequential h1/h2 hierarchy retained; status remains textual.
 - Simpler alternative rejected: relabeling SSE alone would leave the worker's actual state invisible. The new status list is retained because it explains missing knowledge growth. No new visual exception; the previously documented bounded graph-scroll exception remains.
+
+## Narrative failure-progress review (2026-09-23)
+
+Route reviewed: `/` Narrative Studio, failed generation state.
+
+- Anti-slop: retained the existing plain progress surface, text state, bar, and color roles. No card, animation, icon, gradient, dependency, or decorative error treatment was added.
+- State clarity: an SSE error now remains below 100% and says `Proses gagal`; success alone reaches 100%. The safe server message stays readable alongside the percentage, so color and bar length are not the sole indicators.
+- Responsive and accessibility: the existing `aria-live` status and semantic progressbar remain unchanged. The flex layout retains a shrinking text block and fixed percentage, so it wraps within the existing narrow viewport behavior; keyboard and reduced-motion behavior are unchanged because no control or motion was added.
+- Simpler alternative rejected: retaining 100% and changing only the wording would still communicate completion visually. A non-success value is necessary to align the visual state with the persisted job outcome.

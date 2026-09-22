@@ -22,14 +22,14 @@ describe('NarrativeJobRunner', () => {
   it('emits a safe error event when generation fails', async () => {
     const jobs = new NarrativeJobService();
     const id = await jobs.create();
-    const events: string[] = [];
-    jobs.events(id).subscribe({ next: (event) => events.push(event.type ?? ''), complete: () => events.push('closed') });
+    const events: Array<{ type: string; progress?: number }> = [];
+    jobs.events(id).subscribe({ next: (event) => events.push({ type: event.type ?? '', progress: (event.data as { progress?: number }).progress }), complete: () => events.push({ type: 'closed' }) });
     const narratives = { generate: jest.fn().mockRejectedValue(new Error('provider down')) };
     const runner = new NarrativeJobRunner(narratives as never, jobs);
 
     await runner.run(id, { topic: 'tes' });
 
-    expect(events).toEqual(['queued', 'error', 'closed']);
+    expect(events).toEqual([{ type: 'queued', progress: 5 }, { type: 'error', progress: 95 }, { type: 'closed' }]);
     jest.runAllTimers();
   });
 });

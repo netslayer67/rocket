@@ -20,7 +20,7 @@ The dashboard SHALL present the V1 workflow in the order orientation, setup, nar
 
 ### Requirement: Accessible input and feedback
 
-The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, estimated progress for pending narrative-form actions, server-reported progress for narrative generation, an immediately visible confirmed draft after generation, plain-language learning-boundary guidance in the analytics panel, and an anti-slop review for any materially changed UI surface. Supporting copy SHALL explain the purpose and next step once, without abstract marketing language.
+The dashboard SHALL provide visible labels for inputs, text-based status, clear disabled states for user actions, an explicit control that can fill the narrative topic and reference title from a valid reference URL, estimated progress for pending narrative-form actions, server-reported progress for narrative generation, an immediately visible confirmed draft after generation, plain-language learning-boundary guidance in the analytics panel, and an anti-slop review for any materially changed UI surface. Supporting copy SHALL explain the purpose and next step once, without abstract marketing language. A server-reported generation error SHALL preserve its incomplete progress value and use explicit failure text rather than being rendered as 100% completion.
 
 #### Scenario: Creator cannot generate yet
 
@@ -50,7 +50,7 @@ The dashboard SHALL provide visible labels for inputs, text-based status, clear 
 #### Scenario: Stream fails
 
 - **WHEN** the SSE stream emits an error or closes before completion
-- **THEN** the dashboard stops the pending state, reports a readable error, and leaves existing drafts unchanged
+- **THEN** the dashboard stops the pending state, preserves any server-reported incomplete progress, reports a readable error, and leaves existing drafts unchanged
 
 #### Scenario: Creator reads learning guidance
 
