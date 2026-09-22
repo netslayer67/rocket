@@ -1,10 +1,4 @@
-# Persona Engine
-
-## Purpose
-
-Keep persona guidance focused on how a narrator notices and reasons, not only on vocabulary.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Thinking-style persona context
 The system SHALL persist optional thinking style, observation style, reasoning pattern guidance, core identity, claim boundaries, and current interests in the one active persona and SHALL derive one versioned voice contract from its active identity, tone, thinking, observation, claim-boundary, and current-interest fields for every interactive narrative route. Vocabulary MUST remain contextual guidance rather than a quota, and identity MUST NOT be treated as evidence of lived experience.

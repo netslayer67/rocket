@@ -29,9 +29,11 @@ export function jobEvent(record: Timestamped & { jobId: string; events?: Array<{
   return event(`${record.jobId}:${latest?.sequence ?? 0}`, 'job', 'Narrative Agent', status, `Narrative job ${status}`, record.updatedAt ?? record.createdAt, { progress });
 }
 
-export function modelEvent(record: Timestamped & { task: string; model: string; cached?: boolean; inputTokens?: number; outputTokens?: number }): MonitoringEvent {
-  return event(String(record._id), 'model', agentForTask(record.task), 'completed', `${record.task} via ${record.model}`, record.createdAt, {
+export function modelEvent(record: Timestamped & { task: string; model: string; cached?: boolean; accepted?: boolean; rejection?: string; inputTokens?: number; outputTokens?: number }): MonitoringEvent {
+  const accepted = record.accepted !== false;
+  return event(String(record._id), 'model', agentForTask(record.task), accepted ? 'accepted' : 'rejected', `${record.task} via ${record.model}`, record.createdAt, {
     cached: Boolean(record.cached), inputTokens: record.inputTokens ?? null, outputTokens: record.outputTokens ?? null,
+    accepted, rejection: record.rejection ?? null,
   }, record.model);
 }
 

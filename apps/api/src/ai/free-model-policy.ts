@@ -24,3 +24,8 @@ export function freeLearningRouting(model: string) {
 export function isFreeModel(model: string) {
   return model.endsWith(':free') || model === 'openrouter/free';
 }
+
+export function personaModels(configured?: string, fallback?: string) {
+  return [...new Set((configured || fallback || '').split(',').map((model) => model.trim()))]
+    .filter((model) => model !== 'openrouter/free' && model.endsWith(':free')).slice(0, 4);
+}

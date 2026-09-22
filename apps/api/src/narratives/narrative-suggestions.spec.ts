@@ -75,6 +75,7 @@ describe('NarrativesService suggestions', () => {
     expect(result.topic).not.toContain(product.title);
     expect(result.recommendedAngle.confidence).toBe(0.2);
     expect(ai.complete.mock.calls[0][0].prompt).toContain('Naya Arunika');
+    expect(ai.complete.mock.calls[0][0]).toMatchObject({ personaModels: true });
   });
 
   it('rejects a live generic listing angle before exposing it to the creator', async () => {

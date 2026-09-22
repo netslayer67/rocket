@@ -151,6 +151,8 @@ WEB_ORIGIN=https://rocket-web-five.vercel.app
 CORS_ORIGINS=https://rocket-web-five.vercel.app
 ```
 
+For interactive Naya drafts and reference angles, set `OPENROUTER_PERSONA_MODELS` to up to four comma-separated, named OpenRouter model IDs ending in `:free`, ordered by the quality you observe. Rocket gives every candidate the same `persona-core-v1` contract and only tries the next one after availability, JSON, or deterministic voice-quality failure. Do not use `openrouter/free` here: its dynamic routing makes output consistency impossible to audit. This list does not alter the separate, reviewed `OPENROUTER_LEARNING_MODELS` allowlist.
+
 After deployment, verify `GET /health` and `GET /monitoring/history`. Health alone does not prove learning is running: inspect `learning.enabled`, `lastCheck`, `nextCheck`, `phase`, `reason` and `latest`. The monitoring page shows these separately from connection heartbeats. `complete` means one reviewed lesson was saved; `waiting` can legitimately mean no new approved evidence. A pending semantic index still permits lexical retrieval. Model/provider errors do not trigger paid fallback, demo DNA or publishing.
 
 Vercel's `NEXT_PUBLIC_API_URL` must be `https://rocket-production-0b0e.up.railway.app` **without** `/api`. Railway's `THREADS_REDIRECT_URI` and Meta's registered callback must both use `https://rocket-production-0b0e.up.railway.app/threads/callback`.

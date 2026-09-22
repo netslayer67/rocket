@@ -1,4 +1,5 @@
 export type AiTask = 'knowledge-extraction' | 'knowledge-embedding' | 'narrative' | 'reference-suggestion' | 'review' | 'internal-learning' | 'internal-learning-review';
+export type AiGateResult = 'accepted' | 'invalid-output' | 'voice-quality';
 
 export interface AiRequest {
   task: AiTask;
@@ -7,6 +8,8 @@ export interface AiRequest {
   maxTokens: number;
   json?: boolean;
   freeOnly?: boolean;
+  personaModels?: boolean;
+  outputGate?: (content: string) => AiGateResult;
   retrieval?: AiRetrievalMetadata;
 }
 

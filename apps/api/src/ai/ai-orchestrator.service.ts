@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
-import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult } from './ai.types';
+import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult, AiGateResult } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
-import { freeLearningRouting, freeProvider, isFreeModel, learningModels } from './free-model-policy';
+import { freeLearningRouting, freeProvider, isFreeModel, learningModels, personaModels } from './free-model-policy';
 
 type OpenRouterResponse = {
   model?: string;
@@ -14,7 +14,7 @@ type OpenRouterResponse = {
 };
 
 type EmbeddingResponse = { data?: Array<{ embedding?: number[] }>; usage?: { prompt_tokens?: number } };
-type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'> & { retrieval?: AiRetrievalMetadata };
+type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'> & { retrieval?: AiRetrievalMetadata; accepted?: boolean; rejection?: Exclude<AiGateResult, 'accepted'> };
 
 @Injectable()
 export class AiOrchestratorService {
@@ -30,7 +30,7 @@ export class AiOrchestratorService {
     const inputHash = createHash('sha256')
       .update(JSON.stringify(request))
       .digest('hex');
-    const cached = request.freeOnly ? undefined : this.cache.get(inputHash);
+    const cached = request.freeOnly || request.personaModels ? undefined : this.cache.get(inputHash);
 
     if (cached) {
       const result = { ...cached, cached: true };
@@ -59,9 +59,8 @@ export class AiOrchestratorService {
       .split(',')
       .map((model) => model.trim())
       .filter(Boolean);
-    const models = request.freeOnly
-      ? learningModels(this.config.get<string>('OPENROUTER_LEARNING_MODELS'))
-      : configuredModels;
+    const models = request.freeOnly ? learningModels(this.config.get<string>('OPENROUTER_LEARNING_MODELS'))
+      : request.personaModels ? personaModels(this.config.get<string>('OPENROUTER_PERSONA_MODELS'), configuredModels.join(',')) : configuredModels;
 
     let lastError = 'No model configured';
     for (const model of models) {
@@ -72,7 +71,7 @@ export class AiOrchestratorService {
           headers: this.headers(apiKey),
           body: JSON.stringify({
             model,
-            ...(request.freeOnly ? freeLearningRouting(model) : {}),
+            ...(request.freeOnly ? freeLearningRouting(model) : request.personaModels ? { provider: freeProvider } : {}),
             messages: [
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
@@ -85,7 +84,7 @@ export class AiOrchestratorService {
         if (!response.ok) throw new Error(`Model request failed (${response.status})`);
 
         const body = (await response.json()) as OpenRouterResponse;
-        if (request.freeOnly && body.choices?.[0]?.finish_reason === 'length') throw new Error('Free model response was truncated');
+        if ((request.freeOnly || request.personaModels) && body.choices?.[0]?.finish_reason === 'length') throw new Error('Free model response was truncated');
         const content = body.choices?.[0]?.message?.content?.trim();
         if (!content) throw new Error('Model returned no content');
 
@@ -97,8 +96,14 @@ export class AiOrchestratorService {
           inputTokens: body.usage?.prompt_tokens,
           outputTokens: body.usage?.completion_tokens,
         };
-        if (!request.freeOnly) this.cache.set(inputHash, result);
-        await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval });
+        const gate = request.outputGate?.(content) ?? 'accepted';
+        if (gate !== 'accepted') {
+          await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval, accepted: false, rejection: gate });
+          lastError = 'Model response rejected by output gate';
+          continue;
+        }
+        if (!request.freeOnly && !request.personaModels) this.cache.set(inputHash, result);
+        await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval, accepted: true });
         return result;
       } catch (error) {
         lastError = request.freeOnly ? 'Free model unavailable' : error instanceof Error ? error.message : String(error);
@@ -159,6 +164,8 @@ export class AiOrchestratorService {
       inputHash,
       cached: result.cached,
       demo: result.mode === 'demo',
+      accepted: result.accepted ?? true,
+      ...(result.rejection ? { rejection: result.rejection } : {}),
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,
       ...(result.retrieval ? { retrieval: result.retrieval } : {}),

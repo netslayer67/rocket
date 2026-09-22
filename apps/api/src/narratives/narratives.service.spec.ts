@@ -60,6 +60,8 @@ describe('NarrativesService quality gate', () => {
     expect(result.personaId).toBe('active');
     expect(result.retrieval).toEqual({ mode: 'empty', semanticCount: 0, lexicalCount: 0, knowledgeIds: [] });
     expect(result.quality).toMatchObject({ overall: expect.any(Number), passed: true });
+    expect(ai.complete.mock.calls[0][0]).toMatchObject({ personaModels: true });
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('VOICE CONTRACT persona-core-v1');
     expect(ai.complete.mock.calls[1][0].prompt).toContain('Detail adegan tidak koheren: layangan dan lantai');
     expect(result.reviewerNotes.some((note: string) => note.includes('Detail adegan tidak koheren'))).toBe(false);
   });

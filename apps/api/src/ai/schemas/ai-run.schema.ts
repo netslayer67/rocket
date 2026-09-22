@@ -21,6 +21,12 @@ export class AiRun {
   @Prop({ default: false })
   demo!: boolean;
 
+  @Prop({ default: true })
+  accepted!: boolean;
+
+  @Prop()
+  rejection?: 'invalid-output' | 'voice-quality';
+
   @Prop()
   inputTokens?: number;
 

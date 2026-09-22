@@ -1,5 +1,5 @@
 import { AiOrchestratorService } from './ai-orchestrator.service';
-import { freeProvider } from './free-model-policy';
+import { freeProvider, personaModels } from './free-model-policy';
 
 describe('Autonomous free-only AI routing', () => {
   const originalFetch = global.fetch;
@@ -56,5 +56,29 @@ describe('Autonomous free-only AI routing', () => {
     expect(runs.create).toHaveBeenCalledTimes(1);
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).reasoning).toEqual({ effort: 'low', exclude: true });
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body).reasoning).toEqual({ effort: 'none', exclude: true });
+  });
+
+  it('skips invalid persona routes and falls back after a voice gate rejection without retaining output', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'first:free', choices: [{ message: { content: '{"draft":"generic"}' } }] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'second:free', choices: [{ message: { content: '{"draft":"naya"}' } }] }) });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_PERSONA_MODELS: 'openrouter/free,paid/model,first:free,second:free' });
+    const result = await service.complete({ task: 'narrative', system: 'voice contract', prompt: 'private draft input', maxTokens: 20, personaModels: true,
+      outputGate: (content) => content.includes('generic') ? 'voice-quality' : 'accepted' });
+
+    expect(result.model).toBe('second:free');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toMatchObject({ model: 'first:free', provider: freeProvider });
+    expect(runs.create.mock.calls.map(([entry]) => entry)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ model: 'first:free', accepted: false, rejection: 'voice-quality' }),
+      expect.objectContaining({ model: 'second:free', accepted: true }),
+    ]));
+    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
+    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('generic');
+  });
+
+  it('bounds named persona models to four free candidates', () => {
+    expect(personaModels('openrouter/free,paid/model,a:free,a:free,b:free,c:free,d:free,e:free'))
+      .toEqual(['a:free', 'b:free', 'c:free', 'd:free']);
   });
 });
