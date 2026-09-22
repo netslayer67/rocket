@@ -15,7 +15,7 @@ import { Optional } from '@nestjs/common';
 import { demoSuggestion, parseSuggestion, patternContext, suggestionOutputGate, suggestionPrompt } from './narrative-parsers';
 import { evaluateDraftQuality } from './draft-quality';
 import { listedNarrative, reviewNotesForNarrative } from './narrative-listing';
-import { narrativeOutputGate, parseNarrative, reviewContext, type GeneratedNarrative, type NarrativePersona, type ReferenceContext } from './narrative-output';
+import { narrativeShapeGate, parseNarrative, reviewContext, type GeneratedNarrative, type NarrativePersona, type ReferenceContext } from './narrative-output';
 export type NarrativeProgress = (stage: 'generating' | 'reviewing' | 'saved', progress: number, message: string) => void;
 
 @Injectable()
@@ -56,7 +56,7 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
       maxTokens: 1100,
       json: true,
       personaModels: true,
-      outputGate: (content) => narrativeOutputGate(content, dto.topic, persona, reference),
+      outputGate: narrativeShapeGate,
       retrieval: retrieval.metadata,
     });
     const generated = result.mode === 'demo' ? demoNarrative(dto, persona, reference) : parseNarrative(result.content);
@@ -149,7 +149,7 @@ Fix every reviewer failure. Keep the persona's reasoning and a concrete informat
         maxTokens: 900,
         json: true,
         personaModels: true,
-        outputGate: (content) => narrativeOutputGate(content, topic, persona, reference),
+        outputGate: narrativeShapeGate,
       });
       return result.mode === 'live' ? { draft: parseNarrative(result.content), rewritten: true } : { draft, rewritten: false };
     } catch {

@@ -56,11 +56,15 @@ The reviewer SHALL flag an explicit universal generalization that reduces a demo
 - **THEN** the reviewer does not flag stereotype risk solely because an identity or location is mentioned
 
 ### Requirement: Shared pre-acceptance quality gate
-The system SHALL apply the existing deterministic review diagnostics and quality snapshot before accepting a live persona-model narrative response. A response with blocking diagnostics or invalid required JSON MUST be rejected from model routing without persisting its content; a later configured free model can be tried within the existing bounded route.
+The system SHALL reject a live persona-model narrative response from model routing when required JSON cannot be parsed into title, body, and link placement. A parseable response SHALL enter the existing deterministic review, one bounded rewrite attempt, quality snapshot, and manual-approval flow even when it has blocking diagnostics. Blocking diagnostics MUST remain visible and MUST block approval and publishing; raw rejected outputs MUST NOT be persisted.
+
+#### Scenario: Model returns malformed output
+- **WHEN** a live response cannot be parsed into the required narrative shape
+- **THEN** the orchestrator rejects that model response without persisting its content and may try the next bounded free candidate
 
 #### Scenario: Model returns a generic or selling draft
-- **WHEN** a live response triggers a blocking generic-AI, persona, stereotype, evidence, or product-injection diagnostic
-- **THEN** the orchestrator rejects that model response before it becomes a draft and may try the next bounded free candidate
+- **WHEN** a live response parses into the required shape but triggers a blocking generic-AI, persona, stereotype, evidence, or product-injection diagnostic
+- **THEN** it enters the existing bounded rewrite and manual-review flow, and it remains blocked from approval or publishing unless the final deterministic review clears it
 
 #### Scenario: Model returns a valid natural draft
 - **WHEN** a live response parses into the required narrative shape and has no blocking deterministic diagnostic

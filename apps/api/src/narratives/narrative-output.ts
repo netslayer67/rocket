@@ -29,3 +29,12 @@ export function narrativeOutputGate(content: string, topic: string, persona: Nar
     return 'invalid-output';
   }
 }
+
+export function narrativeShapeGate(content: string): AiGateResult {
+  try {
+    parseNarrative(content);
+    return 'accepted';
+  } catch {
+    return 'invalid-output';
+  }
+}
