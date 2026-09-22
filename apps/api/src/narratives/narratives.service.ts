@@ -83,7 +83,8 @@ Rules: the title must sound like a spoken thread opening, never a news/article h
   async suggest(dto: SuggestNarrativeDto) {
     const preview = await fetchReferencePreview(dto.referenceUrl);
     try {
-      const request = suggestionPrompt(preview, naturalnessInstruction);
+      const persona = this.personas.findActive ? await this.personas.findActive() : null;
+      const request = suggestionPrompt(preview, naturalnessInstruction, persona ?? undefined);
       const result = await this.ai.complete({
         task: 'reference-suggestion',
         system: request.system,

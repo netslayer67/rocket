@@ -61,4 +61,28 @@ describe('NarrativesService suggestions', () => {
     expect(result.recommendedAngle.evidence).toEqual(['metadata-only']);
     expect(result.alternativeAngles).toHaveLength(1);
   });
+
+  it('replaces a title-only apparel listing with human tensions in the fallback', async () => {
+    const product = { host: 'shopee.co.id', title: 'Kemeja Batik Pria Premium Lengan Panjang Katun Primisima Slimfit Lapis Furing', description: '' };
+    jest.mocked(fetchReferencePreview).mockResolvedValue(product);
+    const ai = { complete: jest.fn().mockResolvedValue({ mode: 'demo', content: '' }) };
+    const personas = { findActive: jest.fn().mockResolvedValue({ name: 'Naya Arunika', thinkingStyle: 'mulai dari detail', observationStyle: 'konkret' }) };
+    const service = new NarrativesService({} as never, personas as never, {} as never, ai as never);
+
+    const result = await service.suggest({ referenceUrl: 'https://shopee.co.id/item' });
+
+    expect(result.topic).toContain('ragu memilih pakaian');
+    expect(result.topic).not.toContain(product.title);
+    expect(result.recommendedAngle.confidence).toBe(0.2);
+    expect(ai.complete.mock.calls[0][0].prompt).toContain('Naya Arunika');
+  });
+
+  it('rejects a live generic listing angle before exposing it to the creator', async () => {
+    const product = { host: 'shopee.co.id', title: 'Kemeja Batik Pria', description: '' };
+    jest.mocked(fetchReferencePreview).mockResolvedValue(product);
+    const ai = { complete: jest.fn().mockResolvedValue({ mode: 'live', content: JSON.stringify({ angles: [{ title: 'Hal kecil yang bikin orang melihat Kemeja Batik Pria dari sudut lain', confidence: 0.7, reason: 'generic', evidence: ['reference-title'] }] }) }) };
+    const service = new NarrativesService({} as never, { findActive: jest.fn().mockResolvedValue(null) } as never, {} as never, ai as never);
+
+    await expect(service.suggest({ referenceUrl: 'https://shopee.co.id/item' })).resolves.toMatchObject({ topic: expect.stringContaining('ragu memilih pakaian'), recommendedAngle: { evidence: ['metadata-only'] } });
+  });
 });
