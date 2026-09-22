@@ -1,9 +1,5 @@
-# Narrative Studio UI
+## MODIFIED Requirements
 
-## Purpose
-
-Define the user-facing V1 workflow for creating persona-aligned narratives and explicitly approving them before manual publishing.
-## Requirements
 ### Requirement: Guided V1 workspace
 
 The dashboard SHALL present the V1 workflow in the order orientation, setup, narrative draft, and manual approval. The layout SHALL be mobile-first and compact by default, place optional connection, knowledge-library, and analytics operations in labeled native disclosures, expand independent setup sections only at wider breakpoints, and use literal Indonesian copy that names each action and result.
@@ -68,7 +64,7 @@ The dashboard SHALL show reviewer notes before a draft can be approved, SHALL di
 
 #### Scenario: Creator approves a draft
 
-- **WHEN** the creator chooses manual approval on a draft without a blocking reviewer warning
+- **WHEN** a creator chooses manual approval on a draft without a blocking reviewer warning
 - **THEN** the dashboard marks it approved through the API without sending it to an external platform
 
 #### Scenario: Draft fails a quality gate

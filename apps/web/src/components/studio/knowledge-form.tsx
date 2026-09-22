@@ -16,7 +16,7 @@ export function KnowledgeForm({ busy, onImport }: { busy: boolean; onImport: Sub
   }
 
   return (
-    <SectionCard step="02" title="Tambahkan pola" description="Tempel contoh thread. Rocket mengambil strukturnya, bukan menyalin isinya.">
+    <SectionCard title="Tambahkan pola" description="Tempel contoh thread. Rocket mengambil strukturnya, bukan menyalin isinya.">
       <form className="grid gap-3" onSubmit={submit}>
         <Field label="Nama pola"><input name="sourceLabel" required placeholder="Observasi kecil yang membuka diskusi" /></Field>
         <Field label="URL sumber" hint="Opsional; hanya label dan pola yang disimpan."><input name="sourceUrl" type="url" placeholder="https://..." /></Field>

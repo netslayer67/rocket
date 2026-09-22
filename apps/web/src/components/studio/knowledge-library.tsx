@@ -4,11 +4,10 @@ import { VectorBadge } from './ui';
 export function KnowledgeLibrary({ knowledge, busy, onReindex }: { knowledge: Knowledge[]; busy: boolean; onReindex: () => Promise<boolean> }) {
   const reindexDisabled = busy || knowledge.length === 0;
 
-  return (
-    <section className="mt-8" aria-labelledby="library-title">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+  return <details className="mt-8 border-y border-slate-800 py-4" aria-labelledby="library-title">
+      <summary className="cursor-pointer"><span id="library-title" className="text-base font-semibold text-white">Pola yang dipelajari</span><span className="ml-2 text-sm text-slate-400">{knowledge.length} pola tersimpan</span></summary>
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="library-title" className="text-xl font-semibold tracking-tight text-white">Pola yang dipelajari</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">Rocket menyimpan DNA narasi, bukan teks aslinya.</p>
           <p id="semantic-index-help" className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">Reindex membuat pola baru bisa dicari AI lewat Qdrant.</p>
         </div>
@@ -18,8 +17,7 @@ export function KnowledgeLibrary({ knowledge, busy, onReindex }: { knowledge: Kn
         {knowledge.map((item) => <LibraryItem item={item} key={item._id} />)}
         {!knowledge.length && <p className="rounded-xl border border-dashed border-slate-700 px-5 py-8 text-sm text-slate-500 lg:col-span-2">Belum ada pola. Import sebuah thread untuk membangun library.</p>}
       </div>
-    </section>
-  );
+  </details>;
 }
 
 function LibraryItem({ item }: { item: Knowledge }) {

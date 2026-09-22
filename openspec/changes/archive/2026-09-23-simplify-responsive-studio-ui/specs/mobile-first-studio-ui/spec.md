@@ -1,8 +1,5 @@
-# mobile-first-studio-ui Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change mobile-first-studio-redesign. Update Purpose after archive.
-## Requirements
 ### Requirement: Mobile-first creator sequence
 
 The dashboard SHALL present one clear sequence of semantic sections: orientation, setup, narrative drafting, and review. Optional connection, knowledge-library, analytics, and maintenance content SHALL use an accessible native disclosure. The default layout SHALL be a single column with at least 16px viewport padding, readable wrapping, and no horizontal overflow; only independent setup sections MAY become columns at wider breakpoints.

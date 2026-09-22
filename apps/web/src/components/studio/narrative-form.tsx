@@ -45,7 +45,7 @@ export function NarrativeForm({ personas, busy, onGenerate, onSuggest }: { perso
   }
 
   return (
-    <SectionCard step="03" title="Buat draft narasi" description="Mulai dari topik atau fenomena. Referensi hanya dipakai jika hubungannya masuk akal." wide>
+    <SectionCard title="Buat draft narasi" description="Mulai dari topik atau fenomena. Referensi hanya dipakai jika hubungannya masuk akal." wide>
       <form ref={formRef} className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
         <Field label="Topik atau fenomena" hint="Tulis hal yang ingin dibahas, bukan nama produknya."><input name="topic" required placeholder="Kenapa orang mudah percaya rumor" /></Field>
         <Field label="Pakai suara"><select name="personaId" required defaultValue="" disabled={personas.length === 0}><option value="" disabled>{personas.length ? 'Pilih persona' : 'Buat suara terlebih dahulu'}</option>{personas.map((persona) => <option key={persona._id} value={persona._id}>{persona.name}</option>)}</select></Field>

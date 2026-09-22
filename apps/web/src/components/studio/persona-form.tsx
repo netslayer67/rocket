@@ -22,7 +22,7 @@ export function PersonaForm({ personas, busy, onCreate }: { personas: Persona[];
   }
 
   return (
-    <SectionCard step="01" title="Buat suara tulisan" description="Isi cara bicara yang ingin dipertahankan di setiap draft.">
+    <SectionCard title="Buat suara tulisan" description="Isi cara bicara yang ingin dipertahankan di setiap draft.">
       <form className="grid gap-3" onSubmit={submit}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Nama persona"><input name="name" required placeholder="Rico santai" /></Field>

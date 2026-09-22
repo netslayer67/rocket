@@ -30,7 +30,7 @@ export function LearningStatusPanel({ status }: { status?: LearningStatus }) {
   const phase = status?.enabled ? status.phase : 'disabled';
   const latest = status?.latest;
   return <section className="mt-6 border-b border-slate-800 pb-6" aria-labelledby="learning-title">
-    <h2 id="learning-title" className="text-xl font-semibold text-white">Pembelajaran internal otomatis</h2>
+    <h2 id="learning-title" className="text-xl font-semibold text-white">Pembelajaran otomatis</h2>
     <p className="mt-2 text-base font-medium text-cyan-200" role="status" aria-live="polite">
       {status ? phases[phase] ?? phase : 'Status worker belum tersedia dari API'}
     </p>
@@ -39,19 +39,11 @@ export function LearningStatusPanel({ status }: { status?: LearningStatus }) {
         : !status.enabled ? 'Worker perlu diaktifkan pada API Railway. Membuka halaman ini tidak menjalankan pembelajaran.'
           : reasons[status.reason] ?? status.reason}
     </p>
-    {status && <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-      <Detail label="Pemeriksaan terakhir" value={date(status.lastCheck)} />
-      <Detail label="Pemeriksaan berikutnya" value={date(status.nextCheck)} />
-      <Detail label="Bahan pada pemeriksaan ini" value={`${status.sourceCount} · maks. 6 per jenis`} />
-      <Detail label="Percobaan hari ini (UTC)" value={`${status.attemptsToday} / ${status.dailyLimit} · model gratis saja`} />
-    </dl>}
+    {status && <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2"><Detail label="Pemeriksaan berikutnya" value={date(status.nextCheck)} /><Detail label="Percobaan hari ini (UTC)" value={`${status.attemptsToday} / ${status.dailyLimit} · model gratis saja`} /></dl>}
     {latest && <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
       Hasil terakhir ({date(latest.finishedAt ?? latest.createdAt)}): {reasons[latest.reason] ?? phases[latest.phase] ?? latest.phase}
     </p>}
-    <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
-      Saat aktif, worker berjalan di API meski halaman ditutup. Sumber: feedback disetujui, DNA non-otomatis, dan narasi disetujui.
-      Hasilnya sintesis yang diperiksa model, bukan pelatihan ulang model atau bukti peningkatan kualitas terukur.
-    </p>
+    {status && <details className="mt-4 max-w-2xl text-sm text-slate-400"><summary className="cursor-pointer">Rincian proses</summary><dl className="mt-3 grid gap-3 sm:grid-cols-2"><Detail label="Pemeriksaan terakhir" value={date(status.lastCheck)} /><Detail label="Bahan diperiksa" value={`${status.sourceCount} · maks. 6 per jenis`} /></dl><p className="mt-3 leading-6">Worker berjalan di API meski halaman ditutup. Sumbernya feedback disetujui, DNA non-otomatis, dan narasi disetujui. Ini sintesis yang diperiksa model, bukan pelatihan ulang model atau bukti peningkatan kualitas terukur.</p></details>}
   </section>;
 }
 
