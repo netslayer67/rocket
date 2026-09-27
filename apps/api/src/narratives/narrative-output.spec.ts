@@ -17,4 +17,13 @@ describe('narrative output gate', () => {
   it('rejects malformed output from bounded model routing', () => {
     expect(narrativeShapeGate('narasi tanpa JSON')).toBe('invalid-output');
   });
+
+  it('accepts a complete object wrapped by a model presentation', () => {
+    const content = 'Ini draft-nya:\n```json\n{"title":"aku masih kepikiran suara mesin kopi pagi tadi","body":"Aku baru sadar antrean kopi selalu bikin aku penasaran.","linkPlacement":"ending"}\n```';
+    expect(narrativeShapeGate(content)).toBe('accepted');
+  });
+
+  it('keeps incomplete wrapped objects invalid', () => {
+    expect(narrativeShapeGate('Ini hasilnya: {"title":"tanpa body"}')).toBe('invalid-output');
+  });
 });

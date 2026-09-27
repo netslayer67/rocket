@@ -2,6 +2,7 @@ import type { Knowledge } from '../knowledge/schemas/knowledge.schema';
 import type { AiGateResult } from '../ai/ai.types';
 import type { ReferencePreview } from './reference-preview';
 import { fallbackAngles } from './reference-fallback';
+import { parseModelJsonObject } from './model-json';
 
 export type ReferenceAngle = {
   title: string;
@@ -22,7 +23,7 @@ export type NarrativeSuggestion = {
 const evidenceLabels = new Set(['reference-title', 'reference-description', 'reference-host', 'metadata-only']);
 
 export function parseSuggestion(content: string, reference: ReferencePreview): NarrativeSuggestion {
-  const value = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, '')) as Record<string, unknown>;
+  const value = parseModelJsonObject(content);
   const rawAngles = Array.isArray(value.angles) ? value.angles : [];
   const sourceAngles = rawAngles.length ? rawAngles : [value.recommendedAngle ?? value];
   const angles = uniqueAngles(sourceAngles.map((angle) => normalizeAngle(angle, String(value.topic ?? ''))).filter((angle): angle is ReferenceAngle => Boolean(angle && groundedAngle(angle.title, reference))));

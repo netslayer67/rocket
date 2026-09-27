@@ -5,6 +5,7 @@ import { reviewNarrative } from './narrative-review';
 import type { ReferencePreview } from './reference-preview';
 import type { Narrative } from './schemas/narrative.schema';
 import { parseSequence, type ContentSequence } from './narrative-sequence';
+import { parseModelJsonObject } from './model-json';
 
 export type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'> & { sequence: ContentSequence };
 export type NarrativePersona = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'>
@@ -12,7 +13,7 @@ export type NarrativePersona = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 's
 export type ReferenceContext = { title?: string; url?: string; description: string; metadata?: ReferencePreview };
 
 export function parseNarrative(content: string): GeneratedNarrative {
-  const value = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, '')) as Partial<GeneratedNarrative>;
+  const value = parseModelJsonObject(content) as Partial<GeneratedNarrative>;
   if (!value.title || !value.body || !value.linkPlacement) throw new Error('Narrative response is incomplete');
   const fallbackBody = String(value.body).slice(0, 5000);
   const sequence = parseSequence(value.sequence, fallbackBody);
