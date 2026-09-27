@@ -25,7 +25,7 @@ export class AiRun {
   accepted!: boolean;
 
   @Prop()
-  rejection?: 'invalid-output' | 'voice-quality';
+  rejection?: string;
 
   @Prop()
   inputTokens?: number;

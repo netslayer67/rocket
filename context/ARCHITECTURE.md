@@ -41,7 +41,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 1. A user creates or updates one active persona. Legacy personas are archived for history; new drafts cannot select them.
 2. A source thread is submitted once for extraction; the raw body is not persisted.
 3. A compact metadata document is embedded through the orchestrator and indexed in Qdrant.
-4. Knowledge retrieval merges bounded semantic matches with lexical topic matches, deduplicates Mongo IDs, and uses recent patterns only when both query paths are empty.
+4. Knowledge retrieval attempts a bounded Qdrant semantic read, records only whether that read completed plus compact counts, merges its matches with lexical topic matches, deduplicates Mongo IDs, and uses recent patterns only when both query paths are empty. A failed semantic read remains recoverable and does not write Qdrant during generation.
 5. A creator can optionally request a transient public-link preview that returns bounded title/description plus optional type, site, author, section, date, price, currency, and canonical metadata; the AI Orchestrator turns it into an editable recommended angle plus alternatives.
 6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft with one main post, optional reviewable replies, contextual link intents, and an optional creator-supplied media brief. The legacy main body remains the V1 publisher surface.
 7. The API persists a compact job record and returns a job ID. The SSE request replays `queued`, claims the job once, records actual Reference, Knowledge, Narrative, and Reviewer stages when they occur, persists the draft, then emits `complete` with the saved draft. This works across Vercel function instances without adding a queue.
@@ -72,7 +72,7 @@ All autonomous completions and embeddings are free-only (zero-price provider rou
 - Reference-preview HTML is transient; only creator-selected narrative fields are stored.
 - A narrative stays `draft` until a person approves it; publishing is a separate explicit action.
 - The SSE `complete` event is emitted only after the draft is persisted; job payload/events are compact, Mongo-backed, and bounded.
-- AI model, caching, token usage, and compact retrieval mode/IDs are logged in `AiRun`; prompts, vectors, and source text are excluded.
+- AI model, caching, token usage, safe candidate rejection codes, and compact retrieval mode/IDs are logged in `AiRun`; prompts, provider bodies, vectors, and source text are excluded.
 - A failed semantic index marks a record `pending`; it never blocks metadata import.
 - Threads email, password, and plaintext access tokens are never persisted or returned by the API.
 - Feedback must be explicitly approved for learning; a learning run never publishes content.

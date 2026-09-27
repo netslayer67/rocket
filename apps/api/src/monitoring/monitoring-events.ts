@@ -34,11 +34,13 @@ export function jobEvents(record: Timestamped & { jobId: string; events?: Array<
   return (record.events ?? []).map((item) => jobEvent({ ...record, events: [item] }));
 }
 
-export function modelEvent(record: Timestamped & { task: string; model: string; cached?: boolean; accepted?: boolean; rejection?: string; inputTokens?: number; outputTokens?: number }): MonitoringEvent {
+export function modelEvent(record: Timestamped & { task: string; model: string; cached?: boolean; accepted?: boolean; rejection?: string; inputTokens?: number; outputTokens?: number; retrieval?: { mode: string; semanticCount: number; lexicalCount: number; semanticQueried?: boolean } }): MonitoringEvent {
   const accepted = record.accepted !== false;
   return event(String(record._id), 'model', agentForTask(record.task), accepted ? 'accepted' : 'rejected', `${record.task} via ${record.model}`, record.createdAt, {
     cached: Boolean(record.cached), inputTokens: record.inputTokens ?? null, outputTokens: record.outputTokens ?? null,
-    accepted, rejection: record.rejection ?? null,
+    accepted, rejection: record.rejection ?? null, retrievalMode: record.retrieval?.mode ?? null,
+    semanticCount: record.retrieval?.semanticCount ?? null, lexicalCount: record.retrieval?.lexicalCount ?? null,
+    semanticQueried: Boolean(record.retrieval?.semanticQueried),
   }, record.model);
 }
 

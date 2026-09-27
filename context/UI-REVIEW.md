@@ -63,3 +63,11 @@ Route reviewed: `/` generation progress and `/monitoring` workflow map.
 - State clarity: the draft progress names the agent currently doing work. The map names active and waiting agents from persisted events; Learning and Analytics remain visually muted until actual evidence or captured outcomes exist.
 - Responsive and accessibility: the agent summary is normal wrapping text above the existing horizontally scrollable graph. Node labels state active or waiting to assistive technology, and existing focus/reduced-motion behavior is unchanged.
 - Simpler alternative rejected: making every node cyan after a draft would be shorter but false. Preserving the event-derived active window makes the operational state trustworthy. Rollback condition: if the summary becomes too long with future agents, replace it with a native disclosure rather than shrinking text or adding an icon-only legend.
+
+## Model-route and retrieval monitoring review (2026-09-27)
+
+Route reviewed: `/monitoring` existing timeline and workflow map.
+
+- Anti-slop: reuses existing text timeline and map state. No surface, card, icon, gradient, glow, dependency, chart, or motion was added.
+- Responsive and accessibility: rejection code is text in the existing `break-words` timeline, so long model names wrap on narrow screens. Existing semantic text, keyboard-safe retry control, contrast, and reduced-motion behavior remain unchanged.
+- Simpler alternative rejected: a provider-detail panel would expose too much and add UI for a small diagnostic. The bounded code is enough to distinguish failure class; add more only if repeated operator diagnosis proves it necessary.

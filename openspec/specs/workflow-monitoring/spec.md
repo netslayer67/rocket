@@ -88,6 +88,17 @@ The monitoring history and live stream SHALL expose compact accepted or rejected
 - **WHEN** a persona-model response is rejected and a later candidate is attempted
 - **THEN** monitoring shows each compact outcome so the operator can distinguish a successful fallback from fabricated model activity
 
+### Requirement: Safe routing and retrieval monitoring
+Monitoring SHALL expose a compact failed-model outcome code and semantic retrieval state without prompts, sources, generated content, credentials, provider bodies, or vector data.
+
+#### Scenario: Model candidate fails
+- **WHEN** a persisted model run has a safe rejection code
+- **THEN** the timeline displays the code alongside the candidate without exposing provider details
+
+#### Scenario: Semantic retrieval completes
+- **WHEN** a persisted narrative model run reports that semantic retrieval completed
+- **THEN** monitoring exposes that compact retrieval state for the workflow map
+
 ### Requirement: Agent-owned job monitoring
 Monitoring history and SSE snapshots SHALL normalize each persisted narrative job stage with its owned agent where available, and SHALL use Narrative Agent for legacy stage records without ownership.
 

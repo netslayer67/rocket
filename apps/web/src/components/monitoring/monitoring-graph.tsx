@@ -89,7 +89,7 @@ function activeNodes(recent: MonitoringEvent[], nodes: Node[]) {
     if (agent) active.add(agent.id);
     const model = nodes.find((node) => node.stage === 'models' && (node.label === trimModel(event.model ?? '') || node.id === `models:${event.model}`));
     if (model) active.add(model.id);
-    if (event.kind === 'knowledge' && event.status === 'ready') active.add('memory:qdrant');
+    if (event.kind === 'model' && event.details?.semanticQueried === true) active.add('memory:qdrant');
     if (event.kind !== 'analytics') active.add('memory:mongo');
   });
   return active;

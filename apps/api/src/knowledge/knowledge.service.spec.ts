@@ -8,7 +8,7 @@ describe('KnowledgeService hybrid retrieval', () => {
     const result = await service.findRelevantWithMeta('basket', 'active');
 
     expect(result.records.map((item) => item._id)).toEqual(['b', 'a', 'c']);
-    expect(result.metadata).toEqual({ mode: 'hybrid', semanticCount: 2, lexicalCount: 1, knowledgeIds: ['b', 'a', 'c'] });
+    expect(result.metadata).toEqual({ mode: 'hybrid', semanticCount: 2, lexicalCount: 1, knowledgeIds: ['b', 'a', 'c'], semanticQueried: true });
   });
 
   it('uses lexical matches when semantic search fails', async () => {
@@ -17,6 +17,7 @@ describe('KnowledgeService hybrid retrieval', () => {
     const result = await service.findRelevantWithMeta('basket', 'active');
 
     expect(result.metadata.mode).toBe('lexical-fallback');
+    expect(result.metadata.semanticQueried).toBe(false);
     expect(result.records).toHaveLength(1);
   });
 
@@ -26,6 +27,7 @@ describe('KnowledgeService hybrid retrieval', () => {
     const result = await service.findRelevantWithMeta('basket', 'active');
 
     expect(result.metadata.mode).toBe('semantic');
+    expect(result.metadata.semanticQueried).toBe(true);
     expect(result.records.map((item) => item._id)).toEqual(['semantic']);
   });
 
@@ -36,6 +38,7 @@ describe('KnowledgeService hybrid retrieval', () => {
 
     expect(result.metadata.mode).toBe('recent-fallback');
     expect(result.metadata.knowledgeIds).toEqual(['recent']);
+    expect(result.metadata.semanticQueried).toBe(true);
   });
 
   it('returns an empty result when the library has no records', async () => {
@@ -43,7 +46,7 @@ describe('KnowledgeService hybrid retrieval', () => {
 
     const result = await service.findRelevantWithMeta('basket', 'active');
 
-    expect(result.metadata).toEqual({ mode: 'empty', semanticCount: 0, lexicalCount: 0, knowledgeIds: [] });
+    expect(result.metadata).toEqual({ mode: 'empty', semanticCount: 0, lexicalCount: 0, knowledgeIds: [], semanticQueried: true });
   });
 
 });

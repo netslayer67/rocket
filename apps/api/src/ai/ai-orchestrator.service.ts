@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
-import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult, AiGateResult } from './ai.types';
+import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult, AiGateResult, AiRejection } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
 import { freeLearningRouting, freeProvider, isFreeModel, learningModels, personaModels } from './free-model-policy';
 
@@ -14,7 +14,7 @@ type OpenRouterResponse = {
 };
 
 type EmbeddingResponse = { data?: Array<{ embedding?: number[] }>; usage?: { prompt_tokens?: number } };
-type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'> & { retrieval?: AiRetrievalMetadata; accepted?: boolean; rejection?: Exclude<AiGateResult, 'accepted'> };
+type RunResult = Pick<AiResult, 'model' | 'cached' | 'mode' | 'inputTokens' | 'outputTokens'> & { retrieval?: AiRetrievalMetadata; accepted?: boolean; rejection?: AiRejection };
 
 @Injectable()
 export class AiOrchestratorService {
@@ -81,7 +81,7 @@ export class AiOrchestratorService {
             response_format: request.json && !request.personaModels ? { type: 'json_object' } : undefined,
           }),
         });
-        if (!response.ok) throw new Error(`Model request failed (${response.status})`);
+        if (!response.ok) throw new ModelRequestError(response.status);
 
         const body = (await response.json()) as OpenRouterResponse;
         if ((request.freeOnly || request.personaModels) && body.choices?.[0]?.finish_reason === 'length') throw new Error('Free model response was truncated');
@@ -106,7 +106,9 @@ export class AiOrchestratorService {
         await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval, accepted: true });
         return result;
       } catch (error) {
-        lastError = request.freeOnly ? 'Free model unavailable' : error instanceof Error ? error.message : String(error);
+        const rejection = failureCode(error);
+        await this.log(request.task, inputHash, { model, cached: false, mode: 'live', retrieval: request.retrieval, accepted: false, rejection });
+        lastError = request.freeOnly ? 'Free model unavailable' : rejection;
       }
     }
 
@@ -171,4 +173,14 @@ export class AiOrchestratorService {
       ...(result.retrieval ? { retrieval: result.retrieval } : {}),
     });
   }
+}
+
+class ModelRequestError extends Error {
+  constructor(readonly status: number) { super(`Model request failed (${status})`); }
+}
+
+function failureCode(error: unknown): AiRejection {
+  if (!(error instanceof ModelRequestError)) return 'request-error';
+  if ([400, 401, 403, 404, 429].includes(error.status)) return `http-${error.status}` as AiRejection;
+  return error.status >= 500 ? 'http-5xx' : 'request-error';
 }

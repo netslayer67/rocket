@@ -105,7 +105,7 @@ SOURCE:\n${dto.content}`,
         : semanticRecords.length ? 'semantic'
           : lexicalOnly.length ? 'lexical-fallback' : recent.length ? 'recent-fallback' : 'empty'
       : 'empty';
-    return { records, metadata: { mode, semanticCount: semanticRecords.length, lexicalCount: lexicalOnly.length, knowledgeIds: records.map((record) => String(record._id)).slice(0, 8) } satisfies AiRetrievalMetadata };
+    return { records, metadata: { mode, semanticCount: semanticRecords.length, lexicalCount: lexicalOnly.length, knowledgeIds: records.map((record) => String(record._id)).slice(0, 8), semanticQueried: !semanticResult.failed } satisfies AiRetrievalMetadata };
   }
 
   private async recordsByIds(ids: string[], personaId: string) {

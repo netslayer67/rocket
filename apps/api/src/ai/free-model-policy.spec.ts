@@ -21,7 +21,8 @@ describe('Autonomous free-only AI routing', () => {
       expect(JSON.parse(options.body).model).toMatch(/^(nvidia\/nemotron-3-super-120b-a12b|nex-agi\/nex-n2.5-(mini|pro)):free$/);
       expect(options.signal).toBeDefined();
     }
-    expect(runs.create).not.toHaveBeenCalled();
+    expect(runs.create).toHaveBeenCalledTimes(3);
+    expect(runs.create.mock.calls.map(([entry]) => entry.rejection)).toEqual(['http-429', 'http-429', 'http-429']);
   });
 
   it('does not fall back to demo or a paid-only configuration', async () => {
@@ -53,7 +54,7 @@ describe('Autonomous free-only AI routing', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'resolved:free', choices: [{ finish_reason: 'stop', message: { content: '{}' } }] }) });
     const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_LEARNING_MODELS: 'nvidia/nemotron-3-super-120b-a12b:free,nex-agi/nex-n2.5-mini:free' });
     expect((await service.complete(request)).model).toBe('resolved:free');
-    expect(runs.create).toHaveBeenCalledTimes(1);
+    expect(runs.create).toHaveBeenCalledTimes(2);
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).reasoning).toEqual({ effort: 'low', exclude: true });
     expect(JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body).reasoning).toEqual({ effort: 'none', exclude: true });
   });
@@ -76,6 +77,29 @@ describe('Autonomous free-only AI routing', () => {
     ]));
     expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
     expect(JSON.stringify(runs.create.mock.calls)).not.toContain('generic');
+  });
+
+  it('records a safe 404 then uses the next persona candidate', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ model: 'second:free', choices: [{ message: { content: '{}' } }] }) });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_PERSONA_MODELS: 'first:free,second:free' });
+
+    await expect(service.complete({ task: 'narrative', system: 'voice contract', prompt: 'private draft input', maxTokens: 20, personaModels: true })).resolves.toMatchObject({ model: 'second:free' });
+
+    expect(runs.create.mock.calls.map(([entry]) => entry)).toEqual(expect.arrayContaining([expect.objectContaining({ model: 'first:free', accepted: false, rejection: 'http-404' })]));
+    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
+  });
+
+  it('reports only a safe code after every persona candidate fails', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 404 });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_PERSONA_MODELS: 'first:free,second:free' });
+
+    await expect(service.complete({ task: 'narrative', system: 'voice contract', prompt: 'private draft input', maxTokens: 20, personaModels: true }))
+      .rejects.toThrow('No configured model is available: http-404');
+
+    expect(runs.create.mock.calls.map(([entry]) => entry.rejection)).toEqual(['http-404', 'http-404']);
+    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
   });
 
   it('keeps strict JSON formatting for non-persona structured requests', async () => {
