@@ -16,6 +16,8 @@ export function MonitoringGraph({ events, learning }: { events: MonitoringEvent[
   const active = activeNodes(recent, nodes);
   const working = learning?.enabled && ['synthesizing', 'validating', 'saving'].includes(learning.phase);
   if (working) { active.add('signals:internal evidence'); active.add('agents:Learning Agent'); }
+  const activeAgents = agentNames.filter((agent) => active.has(`agents:${agent}`));
+  const waitingAgents = agentNames.filter((agent) => !active.has(`agents:${agent}`));
   const paths = makePaths(nodes, events);
   const activePaths = paths.filter((path) => active.has(path.from) && active.has(path.to));
   const state = working ? 'Worker sedang memproses bukti internal' : recent.length ? `${recent.length} event dalam 60 detik terakhir` : 'Tidak ada aktivitas baru. Lihat status worker di atas.';
@@ -26,6 +28,7 @@ export function MonitoringGraph({ events, learning }: { events: MonitoringEvent[
           <span className="font-medium text-slate-300">Aktivitas backend</span>
           <span role="status" aria-live="polite">{state}</span>
         </div>
+        <p className="mb-4 text-xs leading-5 text-slate-400">Agent aktif: {activeAgents.join(', ') || 'belum ada'} · Menunggu bukti: {waitingAgents.join(', ') || 'tidak ada'}</p>
         <div className="relative h-[430px] overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
           <GraphWires nodes={nodes} paths={paths} activePaths={new Set(activePaths.map((path) => `${path.from}:${path.to}`))} />
           {(Object.keys(stageNames) as Stage[]).map((stage) => <div key={stage} className="absolute top-4 text-sm font-semibold text-slate-400" style={{ left: `${stageX[stage] - 6}%` }}>{stageNames[stage]}</div>)}
@@ -102,10 +105,11 @@ function GraphWires({ nodes, paths, activePaths }: { nodes: Node[]; paths: Path[
 function curve(from: Node, to: Node) { const bend = Math.max(5, (to.x - from.x) * 0.42); return `M ${from.x} ${from.y} C ${from.x + bend} ${from.y}, ${to.x - bend} ${to.y}, ${to.x} ${to.y}`; }
 
 function GraphNode({ node, active }: { node: Node; active: boolean }) {
-  return <div className={`absolute z-10 w-44 -translate-x-1/2 -translate-y-1/2 rounded-lg border px-3 py-2.5 transition-colors ${active ? 'neural-node-active border-cyan-300/70 bg-cyan-950 text-cyan-50' : 'border-slate-800 bg-slate-900 text-slate-300'}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} role="listitem" aria-label={`${node.label}: ${active ? 'active' : 'idle'}`}>
+  const state = active ? 'aktif dari event terbaru' : node.stage === 'agents' ? 'menunggu bukti yang memenuhi syarat' : 'idle';
+  return <div className={`absolute z-10 w-44 -translate-x-1/2 -translate-y-1/2 rounded-lg border px-3 py-2.5 transition-colors ${active ? 'neural-node-active border-cyan-300/70 bg-cyan-950 text-cyan-50' : 'border-slate-800 bg-slate-900 text-slate-300'}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} role="listitem" aria-label={`${node.label}: ${state}`}>
     <div className="flex items-center gap-2"><span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-cyan-300' : 'bg-slate-500'}`} aria-hidden="true" /><span className="truncate text-sm font-medium">{node.label}</span></div>
     {node.note && <span className="ml-4 mt-1 block truncate text-sm text-slate-400">{node.note}</span>}
-    <span className="sr-only">{active ? ' menerima event terbaru' : ' tidak menerima event terbaru'}</span>
+    <span className="sr-only">{state}</span>
   </div>;
 }
 

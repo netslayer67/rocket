@@ -26,7 +26,12 @@ export function jobEvent(record: Timestamped & { jobId: string; events?: Array<{
   const latest = [...(record.events ?? [])].sort((a, b) => b.sequence - a.sequence)[0];
   const status = latest?.type ?? 'queued';
   const progress = typeof latest?.data?.progress === 'number' ? latest.data.progress : null;
-  return event(`${record.jobId}:${latest?.sequence ?? 0}`, 'job', 'Narrative Agent', status, `Narrative job ${status}`, record.updatedAt ?? record.createdAt, { progress });
+  const agent = typeof latest?.data?.agent === 'string' ? latest.data.agent : 'Narrative Agent';
+  return event(`${record.jobId}:${latest?.sequence ?? 0}`, 'job', agent, status, `${agent} ${status}`, record.updatedAt ?? record.createdAt, { progress });
+}
+
+export function jobEvents(record: Timestamped & { jobId: string; events?: Array<{ sequence: number; type: string; data?: Record<string, unknown> }> }): MonitoringEvent[] {
+  return (record.events ?? []).map((item) => jobEvent({ ...record, events: [item] }));
 }
 
 export function modelEvent(record: Timestamped & { task: string; model: string; cached?: boolean; accepted?: boolean; rejection?: string; inputTokens?: number; outputTokens?: number }): MonitoringEvent {

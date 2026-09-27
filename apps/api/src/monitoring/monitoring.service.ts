@@ -13,7 +13,7 @@ import { Feedback } from '../feedback/schemas/feedback.schema';
 import { LearningLog } from '../feedback/schemas/learning-log.schema';
 import { Knowledge } from '../knowledge/schemas/knowledge.schema';
 import { NarrativeJob } from '../narratives/schemas/narrative-job.schema';
-import { analyticsEvent, cycleEvent, feedbackEvent, jobEvent, knowledgeEvent, learningEvent, modelEvent, MonitoringEvent, MonitoringSnapshot } from './monitoring-events';
+import { analyticsEvent, cycleEvent, feedbackEvent, jobEvents, knowledgeEvent, learningEvent, modelEvent, MonitoringEvent, MonitoringSnapshot } from './monitoring-events';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -42,7 +42,7 @@ export class MonitoringService {
       this.knowledgeModel.find(query).sort({ updatedAt: -1 }).limit(100).lean(), this.analytics.find(query).sort({ createdAt: -1 }).limit(100).lean(),
       this.autonomous.status(), this.autonomous.recentCycles(windowStart),
     ]);
-    const events = [...jobs.map(jobEvent), ...runs.map(modelEvent), ...feedback.map(feedbackEvent), ...logs.map(learningEvent), ...knowledge.map(knowledgeEvent), ...analytics.map(analyticsEvent), ...cycles.map(cycleEvent)]
+    const events = [...jobs.flatMap(jobEvents), ...runs.map(modelEvent), ...feedback.map(feedbackEvent), ...logs.map(learningEvent), ...knowledge.map(knowledgeEvent), ...analytics.map(analyticsEvent), ...cycles.map(cycleEvent)]
       .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)).slice(0, 100);
     return { ...snapshot(windowStart, events), learning };
   }

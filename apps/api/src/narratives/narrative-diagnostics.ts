@@ -21,6 +21,9 @@ const mappings: Array<[string, NarrativeDiagnostic['code'], NarrativeDiagnostic[
   ['Kualitas diskusi', 'DISCUSSION_QUALITY', 'discussion'],
   ['AI generic', 'AI_GENERIC', 'language'],
   ['Hook terasa', 'HOOK_GENERIC', 'narrative'],
+  ['Link sequence', 'SEQUENCE_LINK_CONTEXT', 'reference'],
+  ['Anchor link', 'SEQUENCE_LINK_CONTEXT', 'reference'],
+  ['Klaim kesehatan', 'HIGH_RISK_CLAIM', 'evidence'],
 ];
 
 export function diagnoseReviewNotes(notes: string[]): NarrativeDiagnostic[] {

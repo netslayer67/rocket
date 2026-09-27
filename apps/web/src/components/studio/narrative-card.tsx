@@ -1,12 +1,13 @@
 import type { FeedbackInput, Narrative } from '@/lib/types';
 import { StatusBadge } from './ui';
 import { FeedbackForm } from './feedback-form';
+import { ContentSequenceView } from './content-sequence';
 
 export function NarrativeCard({ narrative, busy, onApprove, onPublish, onFeedback }: { narrative: Narrative; busy: boolean; onApprove: (id: string) => Promise<boolean>; onPublish: (id: string) => Promise<boolean>; onFeedback: (input: FeedbackInput) => Promise<boolean> }) {
   const blocked = narrative.reviewerNotes.some((note) => note.startsWith('Review blocked:') || note.startsWith('Naturalness -15 / AI generic +20:'));
   return <article className="section-card p-5">
     <div className="flex items-start justify-between gap-3"><div><p className="text-xs text-slate-500">Posisi referensi: {narrative.linkPlacement}</p><h3 className="mt-1 font-semibold text-white">{narrative.title}</h3></div><StatusBadge status={narrative.publishedThreadId ? 'published' : narrative.status} /></div>
-    <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">{narrative.body}</p>
+    {narrative.sequence ? <ContentSequenceView sequence={narrative.sequence} /> : <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">{narrative.body}</p>}
     {narrative.quality && <section className="mt-4 border-y border-slate-800 py-3" aria-label="Gate kualitas draft">
       <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="text-sm font-semibold text-slate-100">Gate kualitas: {narrative.quality.passed ? 'lolos' : 'perlu perbaikan'}</h4><p className="text-xs text-slate-400">{narrative.quality.overall}/100</p></div>
       <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs sm:grid-cols-4"><Quality label="Persona" value={narrative.quality.persona} /><Quality label="Spesifik" value={narrative.quality.specificity} /><Quality label="Stereotip" value={narrative.quality.stereotype} /><Quality label="Jualan" value={narrative.quality.hiddenSelling} /></dl>
@@ -17,7 +18,7 @@ export function NarrativeCard({ narrative, busy, onApprove, onPublish, onFeedbac
     {narrative.reviewerDiagnostics?.length ? <p className="mt-3 text-xs text-slate-500">Diagnosis: {narrative.reviewerDiagnostics.map((item) => item.code).join(' · ')}</p> : null}
     {narrative.status === 'draft' && !blocked && <button className="button mt-5" disabled={busy} onClick={() => void onApprove(narrative._id)}>Setujui untuk publish manual</button>}
     {narrative.status === 'draft' && blocked && <p className="mt-5 text-xs text-amber-200">Approval diblokir. Buat ulang draft dengan sudut yang lebih konkret.</p>}
-    {narrative.status === 'approved' && !narrative.publishedThreadId && <button className="button mt-5" disabled={busy} onClick={() => void onPublish(narrative._id)}>Publish ke Threads</button>}
+    {narrative.status === 'approved' && !narrative.publishedThreadId && <div className="mt-5"><button className="button" disabled={busy} onClick={() => void onPublish(narrative._id)}>Publish post utama ke Threads</button>{narrative.sequence && <p className="mt-2 text-xs leading-5 text-slate-500">V1 hanya mengirim post utama. Balasan dan media tetap kamu cek lalu posting manual.</p>}</div>}
     {narrative.publishedThreadId && <p className="mt-5 text-xs text-emerald-200">Sudah dipublish manual ke Threads.</p>}
     <FeedbackForm narrative={narrative} busy={busy} onSubmit={onFeedback} />
   </article>;

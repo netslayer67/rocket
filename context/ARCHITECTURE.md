@@ -43,8 +43,8 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 3. A compact metadata document is embedded through the orchestrator and indexed in Qdrant.
 4. Knowledge retrieval merges bounded semantic matches with lexical topic matches, deduplicates Mongo IDs, and uses recent patterns only when both query paths are empty.
 5. A creator can optionally request a transient public-link preview that returns bounded title/description plus optional type, site, author, section, date, price, currency, and canonical metadata; the AI Orchestrator turns it into an editable recommended angle plus alternatives.
-6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft.
-7. The API persists a compact job record and returns a job ID. The SSE request replays `queued`, claims the job once, emits progress over `GET /narratives/events?jobId=...`, persists the draft, then emits `complete` with the saved draft. This works across Vercel function instances without adding a queue.
+6. `NarrativesService` asks only `AiOrchestratorService` to generate a draft with one main post, optional reviewable replies, contextual link intents, and an optional creator-supplied media brief. The legacy main body remains the V1 publisher surface.
+7. The API persists a compact job record and returns a job ID. The SSE request replays `queued`, claims the job once, records actual Reference, Knowledge, Narrative, and Reviewer stages when they occur, persists the draft, then emits `complete` with the saved draft. This works across Vercel function instances without adding a queue.
 8. Deterministic checks flag missing contextual references, promotional phrasing, generic AI patterns, article-style hooks, absent persona voice, and observed incompatible concrete scenes; list responses add stable diagnosis codes and one live rewrite is bounded through the orchestrator.
 9. The user reviews and approves the draft before copying it to a platform.
 10. A creator can connect one Threads account through Meta OAuth; only an approved draft can invoke the explicit text publisher.

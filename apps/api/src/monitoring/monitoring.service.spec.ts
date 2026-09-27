@@ -49,6 +49,16 @@ describe('MonitoringService', () => {
     expect(result.details).toEqual({ progress: 100 });
   });
 
+  it('keeps each owned job stage in history', async () => {
+    const now = new Date();
+    const result = await service({ jobs: [{ _id: 'id', jobId: 'job', createdAt: now, updatedAt: now, events: [
+      { sequence: 1, type: 'generating', data: { progress: 20, agent: 'Reference Agent' } },
+      { sequence: 2, type: 'reviewing', data: { progress: 70, agent: 'Reviewer Agent' } },
+    ] }] }).history();
+
+    expect(result.events.filter((event) => event.kind === 'job').map((event) => event.agent)).toEqual(['Reference Agent', 'Reviewer Agent']);
+  });
+
   it('exposes only an observational quality aggregate for a learning cycle', () => {
     const event = cycleEvent({ _id: 'cycle', phase: 'complete', reason: 'lesson_saved', evidenceIds: ['a'], quality: { eligibleDrafts: 2, averageOverall: 91 } } as never);
 

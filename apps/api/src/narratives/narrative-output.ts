@@ -4,8 +4,9 @@ import { evaluateDraftQuality } from './draft-quality';
 import { reviewNarrative } from './narrative-review';
 import type { ReferencePreview } from './reference-preview';
 import type { Narrative } from './schemas/narrative.schema';
+import { parseSequence, type ContentSequence } from './narrative-sequence';
 
-export type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'>;
+export type GeneratedNarrative = Pick<Narrative, 'title' | 'body' | 'linkPlacement'> & { sequence: ContentSequence };
 export type NarrativePersona = Pick<Persona, 'name' | 'tone' | 'vocabulary' | 'sentenceLength' | 'emojiHabit' | 'interactionStyle'>
   & Partial<Pick<Persona, 'thinkingStyle' | 'observationStyle' | 'reasoningPatterns' | 'coreIdentity' | 'claimBoundaries' | 'currentInterests'>>;
 export type ReferenceContext = { title?: string; url?: string; description: string; metadata?: ReferencePreview };
@@ -13,7 +14,9 @@ export type ReferenceContext = { title?: string; url?: string; description: stri
 export function parseNarrative(content: string): GeneratedNarrative {
   const value = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, '')) as Partial<GeneratedNarrative>;
   if (!value.title || !value.body || !value.linkPlacement) throw new Error('Narrative response is incomplete');
-  return { title: String(value.title).slice(0, 180), body: String(value.body).slice(0, 5000), linkPlacement: String(value.linkPlacement).slice(0, 30) };
+  const fallbackBody = String(value.body).slice(0, 5000);
+  const sequence = parseSequence(value.sequence, fallbackBody);
+  return { title: String(value.title).slice(0, 180), body: sequence.posts[0].body, linkPlacement: String(value.linkPlacement).slice(0, 30), sequence };
 }
 
 export function reviewContext(topic: string, persona: NarrativePersona, reference: ReferenceContext) {

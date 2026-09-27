@@ -78,7 +78,8 @@ describe('NarrativesService quality gate', () => {
     const knowledge = { findRelevant: jest.fn().mockResolvedValue([]) };
     const service = new NarrativesService(narratives as never, personas as never, knowledge as never, ai as never);
 
-    const result = await service.generate({ topic: 'Trade pemain basket', referenceTitle: 'Kemana LeBron masuk?', referenceUrl: url });
+    const stages: string[] = [];
+    const result = await service.generate({ topic: 'Trade pemain basket', referenceTitle: 'Kemana LeBron masuk?', referenceUrl: url }, (_stage, _progress, _message, agent) => { if (agent) stages.push(agent); });
 
     expect(ai.complete).toHaveBeenCalledTimes(2);
     expect(ai.complete.mock.calls[0][0].prompt).toContain('REFERENCE TITLE: Giannis Immortality Basketball Shoes');
@@ -86,6 +87,7 @@ describe('NarrativesService quality gate', () => {
     expect(result.referenceTitle).toBe('Giannis Immortality Basketball Shoes');
     expect(result.reviewerNotes.some((note: string) => note.startsWith('Review blocked:'))).toBe(false);
     expect(result.retrieval?.mode).toBe('empty');
+    expect(stages).toEqual(['Reference Agent', 'Knowledge Agent', 'Narrative Agent', 'Reviewer Agent']);
   });
 
   it('passes negative lessons to the generator as constraints', async () => {

@@ -44,3 +44,22 @@ Route reviewed: `/` Narrative Studio, failed generation state.
 - State clarity: an SSE error now remains below 100% and says `Proses gagal`; success alone reaches 100%. The safe server message stays readable alongside the percentage, so color and bar length are not the sole indicators.
 - Responsive and accessibility: the existing `aria-live` status and semantic progressbar remain unchanged. The flex layout retains a shrinking text block and fixed percentage, so it wraps within the existing narrow viewport behavior; keyboard and reduced-motion behavior are unchanged because no control or motion was added.
 - Simpler alternative rejected: retaining 100% and changing only the wording would still communicate completion visually. A non-success value is necessary to align the visual state with the persisted job outcome.
+
+## Content sequence review (2026-09-27)
+
+Route reviewed: `/` Narrative Studio, production Next build and the rendered component structure for the draft form and review queue.
+
+- Anti-slop: reuses the existing slate surface, native buttons, fields, dividers, and text hierarchy. No dependency, gradient, glow, icon tile, metric wall, decorative image, or motion was added.
+- Responsive and overflow: reference fields use the existing one-column-to-`md` grid; the five-reference cap prevents an unbounded form. Sequence posts use a vertical ordered list, `break-words`, and normal wrapping, so URLs and long text remain inside a narrow card.
+- Accessibility: every added input retains a visible label; add/remove and link controls are native buttons and links; the sequence is a semantic `section`/`ol` with textual role, objective, link intent, and publish scope.
+- Contrast and motion: existing solid slate/cyan text roles remain; role and status are written as text, not color alone. No new animation was added, so the existing reduced-motion policy is unchanged.
+- Simpler alternative rejected: rendering all replies as one long body would hide purpose and link context. The compact ordered list is retained because it supports the manual review decision without a new dashboard layer. Rollback condition: if creator testing shows more than four replies are routinely needed, add a dedicated sequence editor in a separate change instead of expanding this card indefinitely.
+
+## Agent-stage observability review (2026-09-27)
+
+Route reviewed: `/` generation progress and `/monitoring` workflow map.
+
+- Anti-slop: retains the existing progress panel and workflow graph. The change adds factual owner text and a compact active/waiting sentence, not new cards, score widgets, glow, simulated pulses, icons, or a second dashboard.
+- State clarity: the draft progress names the agent currently doing work. The map names active and waiting agents from persisted events; Learning and Analytics remain visually muted until actual evidence or captured outcomes exist.
+- Responsive and accessibility: the agent summary is normal wrapping text above the existing horizontally scrollable graph. Node labels state active or waiting to assistive technology, and existing focus/reduced-motion behavior is unchanged.
+- Simpler alternative rejected: making every node cyan after a draft would be shorter but false. Preserving the event-derived active window makes the operational state trustworthy. Rollback condition: if the summary becomes too long with future agents, replace it with a native disclosure rather than shrinking text or adding an icon-only legend.

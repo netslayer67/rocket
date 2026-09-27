@@ -22,4 +22,18 @@ describe('NarrativeJobService', () => {
     const service = new NarrativeJobService();
     expect(() => service.events('missing')).toThrow('Job narasi tidak ditemukan');
   });
+
+  it('keeps an owned agent stage in the stream', async () => {
+    const service = new NarrativeJobService();
+    const id = await service.create();
+    const agents: string[] = [];
+    service.events(id).subscribe((event) => {
+      const agent = (event.data as { agent?: string }).agent;
+      if (agent) agents.push(agent);
+    });
+
+    service.emit(id, 'generating', 20, 'Memeriksa referensi.', { agent: 'Reference Agent' });
+
+    expect(agents).toEqual(['Reference Agent']);
+  });
 });

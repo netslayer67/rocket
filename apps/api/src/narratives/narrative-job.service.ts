@@ -6,7 +6,8 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { NarrativeJob } from './schemas/narrative-job.schema';
 
 export type NarrativeJobStage = 'queued' | 'generating' | 'reviewing' | 'saved' | 'complete' | 'error';
-export type NarrativeJobData = { stage: NarrativeJobStage; progress: number; message: string; narrative?: unknown; error?: string };
+export type NarrativeAgent = 'Reference Agent' | 'Knowledge Agent' | 'Narrative Agent' | 'Reviewer Agent';
+export type NarrativeJobData = { stage: NarrativeJobStage; progress: number; message: string; agent?: NarrativeAgent; narrative?: unknown; error?: string };
 type JobInput = unknown;
 type StoredEvent = { sequence: number; type: string; data: Record<string, unknown> };
 

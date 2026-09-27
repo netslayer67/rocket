@@ -9,7 +9,7 @@ export class NarrativeJobRunner {
 
   async run(id: string, dto: GenerateNarrativeDto) {
     try {
-      const narrative = await this.narratives.generate(dto, (stage, progress, message) => this.jobs.emit(id, stage, progress, message));
+      const narrative = await this.narratives.generate(dto, (stage, progress, message, agent) => this.jobs.emit(id, stage, progress, message, agent ? { agent } : {}));
       this.jobs.emit(id, 'complete', 100, 'Draft tersimpan dan siap direview.', { narrative });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Draft tidak dapat dibuat.';
