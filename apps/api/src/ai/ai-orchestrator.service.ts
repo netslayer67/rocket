@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult, AiGateResult, AiRejection } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
 import { freeLearningRouting, freeProvider, isFreeModel, learningModels, personaModels } from './free-model-policy';
+import { failureCode, ModelRequestError } from './ai-failure';
 
 type OpenRouterResponse = {
   model?: string;
@@ -63,11 +64,12 @@ export class AiOrchestratorService {
       : request.personaModels ? personaModels(this.config.get<string>('OPENROUTER_PERSONA_MODELS'), configuredModels.join(',')) : configuredModels;
 
     let lastError = 'No model configured';
+    const rejections: AiRejection[] = [];
     for (const model of models) {
       try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
-          signal: AbortSignal.timeout(30000),
+          signal: AbortSignal.timeout(request.personaModels ? 75_000 : 30_000),
           headers: this.headers(apiKey),
           body: JSON.stringify({
             model,
@@ -99,6 +101,7 @@ export class AiOrchestratorService {
         const gate = request.outputGate?.(content) ?? 'accepted';
         if (gate !== 'accepted') {
           await this.log(request.task, inputHash, { ...result, retrieval: request.retrieval, accepted: false, rejection: gate });
+          rejections.push(gate);
           lastError = 'Model response rejected by output gate';
           continue;
         }
@@ -108,11 +111,13 @@ export class AiOrchestratorService {
       } catch (error) {
         const rejection = failureCode(error);
         await this.log(request.task, inputHash, { model, cached: false, mode: 'live', retrieval: request.retrieval, accepted: false, rejection });
+        rejections.push(rejection);
         lastError = request.freeOnly ? 'Free model unavailable' : rejection;
       }
     }
 
-    throw new ServiceUnavailableException(`No configured model is available: ${lastError}`);
+    const summary = request.personaModels && rejections.length ? [...new Set(rejections)].join(', ') : lastError;
+    throw new ServiceUnavailableException(`No configured model is available: ${summary}`);
   }
 
   async embed(input: string, inputType: 'search_document' | 'search_query', freeOnly = false): Promise<EmbeddingResult> {
@@ -173,14 +178,4 @@ export class AiOrchestratorService {
       ...(result.retrieval ? { retrieval: result.retrieval } : {}),
     });
   }
-}
-
-class ModelRequestError extends Error {
-  constructor(readonly status: number) { super(`Model request failed (${status})`); }
-}
-
-function failureCode(error: unknown): AiRejection {
-  if (!(error instanceof ModelRequestError)) return 'request-error';
-  if ([400, 401, 403, 404, 429].includes(error.status)) return `http-${error.status}` as AiRejection;
-  return error.status >= 500 ? 'http-5xx' : 'request-error';
 }

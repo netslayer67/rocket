@@ -1,6 +1,6 @@
 export type AiTask = 'knowledge-extraction' | 'knowledge-embedding' | 'narrative' | 'reference-suggestion' | 'review' | 'internal-learning' | 'internal-learning-review';
 export type AiGateResult = 'accepted' | 'invalid-output' | 'voice-quality';
-export type AiRejection = Exclude<AiGateResult, 'accepted'> | 'http-400' | 'http-401' | 'http-403' | 'http-404' | 'http-429' | 'http-5xx' | 'request-error';
+export type AiRejection = Exclude<AiGateResult, 'accepted'> | 'http-400' | 'http-401' | 'http-403' | 'http-404' | 'http-429' | 'http-5xx' | 'request-error' | 'timeout';
 
 export interface AiRequest {
   task: AiTask;

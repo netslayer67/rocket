@@ -62,6 +62,8 @@ Durable `LearningCycle` claims allow at most four attempts per UTC day, two per 
 
 All autonomous completions and embeddings are free-only (zero-price provider routing, at most three chat fallbacks, 30-second model timeouts). Internal evidence never uses OpenRouter's dynamic `openrouter/free` router: the reviewed structured-output fallbacks are Nemotron 3 Super, Nex N2.5 Mini, and Nex N2.5 Pro, in configurable order. Paid embedding configuration leaves the index pending. A single attempt can make at most six chat requests and one embedding request; four attempts cap this path at 28 requests/day, separate from interactive API usage. Model agreement is not empirical quality evaluation or weight training. There is no claim of perfection or guaranteed growth on unchanged data.
 
+Interactive persona generation uses up to four named free candidates. Each is bounded to 75 seconds to tolerate free-provider queueing; an all-candidate failure returns only the ordered safe rejection codes (such as `timeout` or `http-429`), never provider bodies or prompts.
+
 `GET /monitoring/history` and read-only SSE expose `learning.enabled`, phase, reason, last/next check, bounded input count, daily attempts and latest durable result. A heartbeat means connection health only. Last/next check are process-local timestamps, while attempts and outcomes survive restarts.
 
 ## Invariants

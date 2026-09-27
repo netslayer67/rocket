@@ -102,6 +102,22 @@ describe('Autonomous free-only AI routing', () => {
     expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
   });
 
+  it('gives persona candidates more time and reports distinct safe route failures', async () => {
+    const timeout = jest.spyOn(AbortSignal, 'timeout');
+    global.fetch = jest.fn()
+      .mockRejectedValueOnce(Object.assign(new Error('provider waited'), { name: 'TimeoutError' }))
+      .mockResolvedValueOnce({ ok: false, status: 429 });
+    const { service, runs } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_PERSONA_MODELS: 'first:free,second:free' });
+
+    await expect(service.complete({ task: 'narrative', system: 'voice contract', prompt: 'private draft input', maxTokens: 20, personaModels: true }))
+      .rejects.toThrow('No configured model is available: timeout, http-429');
+
+    expect(timeout).toHaveBeenCalledWith(75_000);
+    expect(runs.create.mock.calls.map(([entry]) => entry.rejection)).toEqual(['timeout', 'http-429']);
+    expect(JSON.stringify(runs.create.mock.calls)).not.toContain('private draft input');
+    timeout.mockRestore();
+  });
+
   it('keeps strict JSON formatting for non-persona structured requests', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '{}' } }] }) });
     const { service } = setup({ OPENROUTER_API_KEY: 'test', OPENROUTER_MODELS: 'standard/model' });

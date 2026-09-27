@@ -1,10 +1,4 @@
-# Model Route Diagnostics
-
-## Purpose
-
-Retain compact, safe evidence for configured model fallback outcomes.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Safe configured-model attempt diagnostics
 For every failed configured model candidate, the API SHALL persist a compact model ID, task, accepted=false, and a safe routing outcome code before trying the next configured candidate. It MUST NOT persist or return provider response bodies, prompts, sources, drafts, credentials, request URLs, or error stacks. When every configured persona model fails, the API SHALL return the ordered distinct safe outcome codes from that fallback run while monitoring retains each compact candidate outcome.
@@ -16,14 +10,3 @@ For every failed configured model candidate, the API SHALL persist a compact mod
 #### Scenario: All candidates fail
 - **WHEN** every configured persona model fails with one or more safe routing outcome codes
 - **THEN** the job returns a safe unavailable-model error that includes the ordered distinct codes and monitoring retains each compact candidate outcome
-
-### Requirement: Semantic retrieval result metadata
-Generation retrieval metadata SHALL distinguish a completed semantic query from an unavailable semantic path while retaining lexical and recent fallback behavior.
-
-#### Scenario: Qdrant query returns no match
-- **WHEN** a Qdrant semantic query completes with no matching knowledge IDs
-- **THEN** metadata records that semantic retrieval was queried and generation may use lexical or recent fallback
-
-#### Scenario: Qdrant query fails
-- **WHEN** semantic retrieval fails
-- **THEN** metadata records that no semantic query completed and generation continues with the existing fallback without writing Qdrant
