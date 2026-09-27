@@ -11,8 +11,9 @@ Next.js dashboard
 NestJS API ──► MongoDB (pattern, feedback, analytics metadata)
         │                  ▲
         ▼                  │
-AI Orchestrator ──► OpenRouter embeddings
+AI Orchestrator ──► 9Router (interactive persona chat, when configured)
         │
+        ├──► OpenRouter embeddings + free-only autonomous learning
         ▼
 Qdrant (semantic vector index)
 
@@ -52,7 +53,7 @@ Nutch CLI ──► candidate URLs only (manual operator review)
 12. An operator can enter observed metrics to derive CTR and engagement; a read-only insights endpoint groups bounded rows into manual outcome candidates, and an explicit approval endpoint promotes one candidate through KnowledgeService into diagnosis-first DNA. No automatic promotion or causal claim is made.
 13. An operator can manually crawl a creator-selected public URL with Scrapy; its transient text enters the existing knowledge-import flow.
 14. An operator can manually run Nutch to discover bounded same-domain URLs, then individually choose a URL for Scrapy import.
-15. The Railway API autonomously checks approved evidence for the active persona every five minutes without browser traffic. At most six records of each source type enter one fingerprinted batch. A free model synthesizes one diagnosis; a second free-model call checks grounding, novelty and context. Accepted metadata is saved once with source IDs and reused by that persona's retrieval, with a provisional-synthesis caveat in narrative prompts. Drafts, raw imported bodies, archived-persona records, unscoped legacy DNA, autonomous DNA inputs, publishing, and analytics candidates are excluded.
+15. The Railway API autonomously checks approved evidence for the active persona every five minutes without browser traffic. At most six records of each source type enter one fingerprinted batch. A free OpenRouter model synthesizes one diagnosis; a second free OpenRouter call checks grounding, novelty and context. Accepted metadata is saved once with source IDs and reused by that persona's retrieval, with a provisional-synthesis caveat in narrative prompts. Drafts, raw imported bodies, archived-persona records, unscoped legacy DNA, autonomous DNA inputs, publishing, and analytics candidates are excluded.
 
 ## Autonomous learning operations
 
@@ -62,7 +63,7 @@ Durable `LearningCycle` claims allow at most four attempts per UTC day, two per 
 
 All autonomous completions and embeddings are free-only (zero-price provider routing, at most three chat fallbacks, 30-second model timeouts). Internal evidence never uses OpenRouter's dynamic `openrouter/free` router: the reviewed structured-output fallbacks are Nemotron 3 Super, Nex N2.5 Mini, and Nex N2.5 Pro, in configurable order. Paid embedding configuration leaves the index pending. A single attempt can make at most six chat requests and one embedding request; four attempts cap this path at 28 requests/day, separate from interactive API usage. Model agreement is not empirical quality evaluation or weight training. There is no claim of perfection or guaranteed growth on unchanged data.
 
-Interactive persona generation uses up to four named free candidates. Each is bounded to 75 seconds to tolerate free-provider queueing; an all-candidate failure returns only the ordered safe rejection codes (such as `timeout` or `http-429`), never provider bodies or prompts.
+Interactive persona generation uses up to four named candidates and is bounded to 75 seconds per candidate. With both `NINE_ROUTER_BASE_URL` and `NINE_ROUTER_API_KEY`, it uses up to four explicit `NINE_ROUTER_PERSONA_MODELS` through that server-reachable OpenAI-compatible endpoint with `stream:false`; otherwise it uses named OpenRouter free candidates. Embeddings and autonomous free-only learning never use 9Router during this migration. An all-candidate failure returns only ordered safe rejection codes (such as `timeout` or `http-429`), never provider bodies or prompts.
 
 `GET /monitoring/history` and read-only SSE expose `learning.enabled`, phase, reason, last/next check, bounded input count, daily attempts and latest durable result. A heartbeat means connection health only. Last/next check are process-local timestamps, while attempts and outcomes survive restarts.
 

@@ -101,8 +101,8 @@ Every model request passes through the AI Orchestrator. Retrieval is bounded, me
 Next.js Studio
       │
       ▼
-NestJS API ──► AI Orchestrator ──► OpenRouter
-      │                 │
+NestJS API ──► AI Orchestrator ──► 9Router (interactive persona chat)
+      │                 ├── OpenRouter (embeddings and free-only learning)
       │                 ├── prompt and token controls
       │                 ├── retrieval context
       │                 └── response validation
@@ -151,7 +151,17 @@ WEB_ORIGIN=https://rocket-web-five.vercel.app
 CORS_ORIGINS=https://rocket-web-five.vercel.app
 ```
 
-For interactive Naya drafts and reference angles, set `OPENROUTER_PERSONA_MODELS` to up to four comma-separated, named OpenRouter model IDs ending in `:free`, ordered by the quality you observe. Rocket gives every candidate the same `persona-core-v1` contract and only tries the next one after availability, JSON, or deterministic voice-quality failure. Do not use `openrouter/free` here: its dynamic routing makes output consistency impossible to audit. This list does not alter the separate, reviewed `OPENROUTER_LEARNING_MODELS` allowlist.
+For interactive Naya drafts and reference angles, Rocket can use either the existing OpenRouter list or a 9Router route. Without 9Router configuration, set `OPENROUTER_PERSONA_MODELS` to up to four comma-separated, named OpenRouter IDs ending in `:free`. Do not use `openrouter/free`: its dynamic routing makes output consistency impossible to audit.
+
+When both 9Router variables below are present, they take precedence for interactive persona chat only. The base URL must be a secure, server-reachable `/v1` endpoint—`localhost` works only from your own machine, never from Railway. Start with the directly verified model, then add only models you have tested successfully through your own 9Router dashboard. Rocket sends `stream:false` and tries at most four models in the exact order supplied.
+
+```text
+NINE_ROUTER_BASE_URL=https://your-secure-9router-host/v1
+NINE_ROUTER_API_KEY=your-rotated-server-only-key
+NINE_ROUTER_PERSONA_MODELS=gemini/gemini-3.8-flash
+```
+
+Keep `OPENROUTER_API_KEY` and `OPENROUTER_EMBEDDING_MODEL` configured: Qdrant retrieval still depends on that compatible embedding route. The autonomous worker also remains OpenRouter free-only, because 9Router's subscription/cheap fallback has no enforceable zero-cost guarantee. Disable it with `AUTONOMOUS_LEARNING_ENABLED=false` if that OpenRouter path is unavailable. Do not put a 9Router key, tunnel URL, or model fallback into client-side Vercel variables.
 
 After deployment, verify `GET /health` and `GET /monitoring/history`. Health alone does not prove learning is running: inspect `learning.enabled`, `lastCheck`, `nextCheck`, `phase`, `reason` and `latest`. The monitoring page shows these separately from connection heartbeats. `complete` means one reviewed lesson was saved; `waiting` can legitimately mean no new approved evidence. A pending semantic index still permits lexical retrieval. Model/provider errors do not trigger paid fallback, demo DNA or publishing.
 

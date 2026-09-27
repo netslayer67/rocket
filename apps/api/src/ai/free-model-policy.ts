@@ -29,3 +29,8 @@ export function personaModels(configured?: string, fallback?: string) {
   return [...new Set((configured || fallback || '').split(',').map((model) => model.trim()))]
     .filter((model) => model !== 'openrouter/free' && model.endsWith(':free')).slice(0, 4);
 }
+
+export function nineRouterPersonaModels(configured?: string) {
+  return [...new Set((configured || '').split(',').map((model) => model.trim()))]
+    .filter(Boolean).slice(0, 4);
+}

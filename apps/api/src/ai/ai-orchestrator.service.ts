@@ -5,8 +5,9 @@ import { createHash } from 'node:crypto';
 import { Model } from 'mongoose';
 import { AiRequest, AiResult, AiRetrievalMetadata, EmbeddingResult, AiGateResult, AiRejection } from './ai.types';
 import { AiRun } from './schemas/ai-run.schema';
-import { freeLearningRouting, freeProvider, isFreeModel, learningModels, personaModels } from './free-model-policy';
+import { freeLearningRouting, freeProvider, isFreeModel, learningModels, nineRouterPersonaModels, personaModels } from './free-model-policy';
 import { failureCode, ModelRequestError } from './ai-failure';
+import { nineRouterChatRoute } from './nine-router-chat-route';
 
 type OpenRouterResponse = {
   model?: string;
@@ -39,7 +40,8 @@ export class AiOrchestratorService {
       return result;
     }
 
-    const apiKey = this.config.get<string>('OPENROUTER_API_KEY');
+    const route = nineRouterChatRoute(this.config, request);
+    const apiKey = route?.apiKey ?? this.config.get<string>('OPENROUTER_API_KEY');
     if (!apiKey) {
       if (request.freeOnly) throw new ServiceUnavailableException('Free learning requires an OpenRouter key');
       const result: AiResult = {
@@ -61,25 +63,28 @@ export class AiOrchestratorService {
       .map((model) => model.trim())
       .filter(Boolean);
     const models = request.freeOnly ? learningModels(this.config.get<string>('OPENROUTER_LEARNING_MODELS'))
-      : request.personaModels ? personaModels(this.config.get<string>('OPENROUTER_PERSONA_MODELS'), configuredModels.join(',')) : configuredModels;
+      : request.personaModels ? route ? nineRouterPersonaModels(this.config.get<string>('NINE_ROUTER_PERSONA_MODELS'))
+        : personaModels(this.config.get<string>('OPENROUTER_PERSONA_MODELS'), configuredModels.join(',')) : configuredModels;
+    if (route && !models.length) throw new ServiceUnavailableException('9Router chat requires NINE_ROUTER_PERSONA_MODELS');
 
     let lastError = 'No model configured';
     const rejections: AiRejection[] = [];
     for (const model of models) {
       try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const response = await fetch(route?.url ?? 'https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           signal: AbortSignal.timeout(request.personaModels ? 75_000 : 30_000),
-          headers: this.headers(apiKey),
+          headers: this.headers(apiKey, !route),
           body: JSON.stringify({
             model,
-            ...(request.freeOnly ? freeLearningRouting(model) : request.personaModels ? { provider: freeProvider } : {}),
+            ...(request.freeOnly ? freeLearningRouting(model) : request.personaModels && !route ? { provider: freeProvider } : {}),
             messages: [
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
             ],
             max_tokens: request.maxTokens,
             temperature: 0.7,
+            stream: false,
             response_format: request.json && !request.personaModels ? { type: 'json_object' } : undefined,
           }),
         });
@@ -151,12 +156,14 @@ export class AiOrchestratorService {
     return result;
   }
 
-  private headers(apiKey: string) {
+  private headers(apiKey: string, openRouter = true) {
     return {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': this.config.get<string>('OPENROUTER_SITE_URL', 'http://localhost:3000'),
-      'X-Title': 'Rocket Project',
+      ...(openRouter ? {
+        'HTTP-Referer': this.config.get<string>('OPENROUTER_SITE_URL', 'http://localhost:3000'),
+        'X-Title': 'Rocket Project',
+      } : {}),
     };
   }
 
