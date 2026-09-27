@@ -30,6 +30,7 @@ describe('NarrativesService suggestions', () => {
         reason: 'Sudut alternatif dari konteks buku.',
         evidence: ['reference-title'],
       }],
+      origin: 'model',
     });
     expect(ai.complete.mock.calls[0][0].prompt).toContain('REFERENCE METADATA');
     expect(ai.complete.mock.calls[0][0].prompt).toContain('Rocket Books');
@@ -60,6 +61,7 @@ describe('NarrativesService suggestions', () => {
 
     expect(result.recommendedAngle.evidence).toEqual(['metadata-only']);
     expect(result.alternativeAngles).toHaveLength(1);
+    expect(result.origin).toBe('metadata-fallback');
   });
 
   it('replaces a title-only apparel listing with human tensions in the fallback', async () => {
@@ -74,6 +76,7 @@ describe('NarrativesService suggestions', () => {
     expect(result.topic).toContain('ragu memilih pakaian');
     expect(result.topic).not.toContain(product.title);
     expect(result.recommendedAngle.confidence).toBe(0.2);
+    expect(result.origin).toBe('metadata-fallback');
     expect(ai.complete.mock.calls[0][0].prompt).toContain('Naya Arunika');
     expect(ai.complete.mock.calls[0][0]).toMatchObject({ personaModels: true });
   });
@@ -85,5 +88,27 @@ describe('NarrativesService suggestions', () => {
     const service = new NarrativesService({} as never, { findActive: jest.fn().mockResolvedValue(null) } as never, {} as never, ai as never);
 
     await expect(service.suggest({ referenceUrl: 'https://shopee.co.id/item' })).resolves.toMatchObject({ topic: expect.stringContaining('ragu memilih pakaian'), recommendedAngle: { evidence: ['metadata-only'] } });
+  });
+
+  it('uses an audio tension instead of the cross-category fallback for title-only earphones', async () => {
+    const product = { host: 'shopee.co.id', title: 'Ultrapods TWS Bluetooth 5.3 Earphone', description: '' };
+    jest.mocked(fetchReferencePreview).mockResolvedValue(product);
+    const ai = { complete: jest.fn().mockRejectedValue(new Error('provider unavailable')) };
+    const service = new NarrativesService({} as never, {} as never, {} as never, ai as never);
+
+    await expect(service.suggest({ referenceUrl: 'https://shopee.co.id/item' })).resolves.toMatchObject({
+      topic: expect.stringContaining('ruang dengar sendiri'), origin: 'metadata-fallback', recommendedAngle: { confidence: 0.2 },
+    });
+  });
+
+  it('keeps unknown title-only listings neutral and visibly constrained', async () => {
+    const product = { host: 'shopee.co.id', title: 'Produk Serbaguna', description: '' };
+    jest.mocked(fetchReferencePreview).mockResolvedValue(product);
+    const ai = { complete: jest.fn().mockResolvedValue({ mode: 'demo', content: '' }) };
+    const service = new NarrativesService({} as never, {} as never, {} as never, ai as never);
+
+    await expect(service.suggest({ referenceUrl: 'https://shopee.co.id/item' })).resolves.toMatchObject({
+      topic: expect.stringContaining('Kebutuhan apa'), origin: 'metadata-fallback', recommendedAngle: { evidence: ['metadata-only'] },
+    });
   });
 });

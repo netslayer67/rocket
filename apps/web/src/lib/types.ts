@@ -71,6 +71,7 @@ export type NarrativeSuggestion = {
   reference: ReferenceMetadata;
   recommendedAngle: ReferenceAngle;
   alternativeAngles: ReferenceAngle[];
+  origin?: 'model' | 'metadata-fallback';
 };
 export type Submit<T> = (value: T) => Promise<boolean>;
 export type NarrativeJobStage = 'queued' | 'generating' | 'reviewing' | 'saved' | 'complete' | 'error';

@@ -64,6 +64,15 @@ Route reviewed: `/` generation progress and `/monitoring` workflow map.
 - Responsive and accessibility: the agent summary is normal wrapping text above the existing horizontally scrollable graph. Node labels state active or waiting to assistive technology, and existing focus/reduced-motion behavior is unchanged.
 - Simpler alternative rejected: making every node cyan after a draft would be shorter but false. Preserving the event-derived active window makes the operational state trustworthy. Rollback condition: if the summary becomes too long with future agents, replace it with a native disclosure rather than shrinking text or adding an icon-only legend.
 
+## Reference fallback origin review (2026-09-27)
+
+Route reviewed: `/` Narrative Studio angle picker in the production build.
+
+- Anti-slop: the change reuses the existing picker surface and adds one factual text line only for constrained metadata fallback. No badge wall, new card, gradient, icon, dependency, image, or animation was added.
+- Accessibility and responsive: the existing native select and labeled field remain keyboard-operable. The fallback sentence uses normal wrapping within the existing `md:col-span-2` container; the production build completed type validation and the text remains understandable without amber color.
+- Motion and contrast: no motion changed. Amber text is supplemental status, while the sentence itself states the limitation; the surrounding slate and body-text hierarchy remain unchanged.
+- Simpler alternative rejected: silently returning the fallback is shorter but materially misleading. A single sentence is retained; a modal or diagnostics panel would be excessive until creators need provider-level troubleshooting here.
+
 ## Model-route and retrieval monitoring review (2026-09-27)
 
 Route reviewed: `/monitoring` existing timeline and workflow map.

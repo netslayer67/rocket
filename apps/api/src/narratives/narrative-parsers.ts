@@ -1,6 +1,7 @@
 import type { Knowledge } from '../knowledge/schemas/knowledge.schema';
 import type { AiGateResult } from '../ai/ai.types';
 import type { ReferencePreview } from './reference-preview';
+import { fallbackAngles } from './reference-fallback';
 
 export type ReferenceAngle = {
   title: string;
@@ -15,6 +16,7 @@ export type NarrativeSuggestion = {
   reference: ReferencePreview;
   recommendedAngle: ReferenceAngle;
   alternativeAngles: ReferenceAngle[];
+  origin: 'model' | 'metadata-fallback';
 };
 
 const evidenceLabels = new Set(['reference-title', 'reference-description', 'reference-host', 'metadata-only']);
@@ -26,7 +28,7 @@ export function parseSuggestion(content: string, reference: ReferencePreview): N
   const angles = uniqueAngles(sourceAngles.map((angle) => normalizeAngle(angle, String(value.topic ?? ''))).filter((angle): angle is ReferenceAngle => Boolean(angle && groundedAngle(angle.title, reference))));
   if (!angles.length) return demoSuggestion(reference);
   const recommended = angles[0];
-  return { topic: recommended.title, referenceTitle: reference.title, reference, recommendedAngle: recommended, alternativeAngles: angles.slice(1, 3) };
+  return { topic: recommended.title, referenceTitle: reference.title, reference, recommendedAngle: recommended, alternativeAngles: angles.slice(1, 3), origin: 'model' };
 }
 
 function normalizeAngle(input: unknown, legacyTopic = ''): ReferenceAngle | undefined {
@@ -55,13 +57,14 @@ function uniqueAngles(angles: ReferenceAngle[]) {
 
 export function demoSuggestion(reference: ReferencePreview): NarrativeSuggestion {
   const [title, alternative] = fallbackAngles(reference.title);
-  const angle = (text: string): ReferenceAngle => ({ title: text, confidence: 0.2, reason: 'Halaman hanya memberi judul listing. Ini pemantik percakapan, bukan klaim tentang produk.', evidence: ['metadata-only'] });
+  const angle = (text: string): ReferenceAngle => ({ title: text, confidence: 0.2, reason: 'Model tidak memberi hasil yang dapat dipakai. Ini pemantik dari metadata judul, bukan klaim tentang produk.', evidence: ['metadata-only'] });
   return {
     topic: title,
     referenceTitle: reference.title,
     reference,
     recommendedAngle: angle(title),
     alternativeAngles: [angle(alternative)],
+    origin: 'metadata-fallback',
   };
 }
 
@@ -87,14 +90,6 @@ export function suggestionOutputGate(content: string, reference: ReferencePrevie
 function groundedAngle(title: string, reference: ReferencePreview) {
   const normalized = normalize(title); const listing = normalize(reference.title);
   return normalized !== listing && !/\b(?:hal kecil|sudut lain|obrolan lebih luas)\b/iu.test(title);
-}
-
-function fallbackAngles(title: string): [string, string] {
-  // ponytail: apparel titles only; add categories after reviewed title-only failures, never infer product properties.
-  if (/\b(?:kemeja|batik|baju|pakaian|celana|rok|dress|sepatu|jaket)\b/iu.test(title)) {
-    return ['Apa yang biasanya bikin orang ragu memilih pakaian untuk acara yang ingin terasa pantas tanpa terasa jadi orang lain?', 'Di antara ingin terlihat rapi dan ingin tetap nyaman, bagian mana yang paling sering bikin orang salah pilih?'];
-  }
-  return ['Pertanyaan apa yang sebaiknya dijawab dulu sebelum sebuah referensi benar-benar relevan untuk dibagikan?', 'Kapan sebuah pilihan terasa membantu, dan kapan ia cuma menambah kebisingan dalam percakapan?'];
 }
 
 function normalize(value: string) { return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
