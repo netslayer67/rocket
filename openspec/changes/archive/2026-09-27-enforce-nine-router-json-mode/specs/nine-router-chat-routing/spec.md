@@ -1,10 +1,4 @@
-# 9Router Chat Routing
-
-## Purpose
-
-Route configured interactive persona chat through a bounded, OpenAI-compatible 9Router endpoint without changing semantic retrieval or autonomous-learning cost guarantees.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Configured 9Router interactive chat route
 When an operator supplies both `NINE_ROUTER_BASE_URL` and `NINE_ROUTER_API_KEY`, the system SHALL send interactive persona chat completions to that OpenAI-compatible base URL. It MUST use the configured `NINE_ROUTER_PERSONA_MODELS` in bounded order, send `stream: false`, and when the caller requires structured output send OpenAI-compatible JSON-object response formatting. It MUST preserve the active-persona contract and output gate, omit OpenRouter-specific provider routing, and MUST NOT log credentials, provider bodies, prompts, or outputs.
@@ -20,17 +14,3 @@ When an operator supplies both `NINE_ROUTER_BASE_URL` and `NINE_ROUTER_API_KEY`,
 #### Scenario: Structured persona output is requested
 - **WHEN** an interactive 9Router request requires a JSON-shaped narrative or reference suggestion
 - **THEN** the request includes JSON-object response formatting before the existing output gate evaluates the result
-
-### Requirement: Safe 9Router configuration boundary
-The system SHALL require both 9Router endpoint and key before activating the 9Router chat route. It MUST reject a partial 9Router configuration without silently sending the request to OpenRouter, and it MUST retain the existing OpenRouter route when neither 9Router value is configured.
-
-#### Scenario: Endpoint lacks a key
-- **WHEN** `NINE_ROUTER_BASE_URL` is set but `NINE_ROUTER_API_KEY` is absent
-- **THEN** an interactive request returns a safe configuration error and sends no provider request
-
-### Requirement: Embedding and autonomous-learning isolation
-The system SHALL keep embeddings and free-only autonomous learning on their existing OpenRouter configuration during the 9Router interactive-chat migration. It MUST NOT use 9Router's subscription or cheap fallback for autonomous learning.
-
-#### Scenario: Interactive 9Router and semantic retrieval are both enabled
-- **WHEN** a narrative needs semantic retrieval while 9Router chat is configured
-- **THEN** the existing OpenRouter embedding route queries Qdrant and the interactive completion uses 9Router

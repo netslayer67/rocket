@@ -2,7 +2,7 @@ import { AiOrchestratorService } from './ai-orchestrator.service';
 
 describe('9Router persona chat routing', () => {
   const originalFetch = global.fetch;
-  const request = { task: 'narrative' as const, system: 'voice contract', prompt: 'private draft', maxTokens: 128, personaModels: true };
+  const request = { task: 'narrative' as const, system: 'voice contract', prompt: 'private draft', maxTokens: 128, json: true, personaModels: true };
 
   function setup(values: Record<string, string> = {}) {
     const config = { get: (key: string, fallback?: string) => values[key] ?? fallback };
@@ -25,7 +25,7 @@ describe('9Router persona chat routing', () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     const payload = JSON.parse(options.body);
     expect(url).toBe('https://router.example/v1/chat/completions');
-    expect(payload).toMatchObject({ model: 'gemini/gemini-3.8-flash', stream: false });
+    expect(payload).toMatchObject({ model: 'gemini/gemini-3.8-flash', stream: false, response_format: { type: 'json_object' } });
     expect(payload).not.toHaveProperty('provider');
     expect(options.headers).not.toHaveProperty('HTTP-Referer');
   });
@@ -66,5 +66,16 @@ describe('9Router persona chat routing', () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe('https://openrouter.ai/api/v1/embeddings');
     expect(options.headers.Authorization).toBe('Bearer openrouter-key');
+  });
+
+  it('does not add strict JSON mode to an OpenRouter persona request', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '{}' } }] }) });
+    const { service } = setup({ OPENROUTER_API_KEY: 'openrouter-key', OPENROUTER_PERSONA_MODELS: 'first:free' });
+
+    await service.complete(request);
+
+    const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(JSON.parse(options.body)).not.toHaveProperty('response_format');
   });
 });

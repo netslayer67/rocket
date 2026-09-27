@@ -85,7 +85,7 @@ export class AiOrchestratorService {
             max_tokens: request.maxTokens,
             temperature: 0.7,
             stream: false,
-            response_format: request.json && !request.personaModels ? { type: 'json_object' } : undefined,
+            response_format: request.json && (!request.personaModels || route) ? { type: 'json_object' } : undefined,
           }),
         });
         if (!response.ok) throw new ModelRequestError(response.status);
